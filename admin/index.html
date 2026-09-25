@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13233A">
+<meta name="robots" content="noindex">
+<title>BIVAS · Estate admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E6E9ED;        /* concrete */
+    --surface: #FFFFFF;
+    --ink: #13233A;       /* uniform navy */
+    --muted: #5A6778;
+    --line: #D3D8DE;
+    --amber: #F2A900;     /* barrier amber */
+    --amber-edge: #B67F00;
+    --go: #0A7A3F;
+    --go-soft: #DDF1E5;
+    --stop: #C21F32;
+    --stop-soft: #F9E0E3;
+    --wait-soft: #FFF1CC;
+    --rail: #13233A;
+    --rail-ink: #C9D3E0;
+    --font: "Archivo", "Arial Narrow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1520; --surface: #172233; --ink: #EEF2F7; --muted: #9AA7B8; --line: #2A3950;
+      --go: #2FBF71; --go-soft: #0F3322; --stop: #FF5C6E; --stop-soft: #3A1219; --wait-soft: #3A2E08;
+      --rail: #09101A; --rail-ink: #9AA7B8;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .hazard { background: repeating-linear-gradient(-45deg, var(--amber) 0 12px, #13233A 12px 24px); }
+
+  /* ---------- Sign in ---------- */
+  .login { min-height: 100%; display: grid; place-items: center; padding: 24px 16px; }
+  .login-card { width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; overflow: hidden; }
+  .login-card .hazard { height: 12px; }
+  .login-card .inner { padding: 26px 24px 28px; }
+  .login h1 { font-size: 30px; font-weight: 800; font-stretch: 116%; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+
+  /* ---------- Shell ---------- */
+  .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100%; }
+  .rail { background: var(--rail); color: var(--rail-ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+  .rail .hazard { height: 8px; flex: none; }
+  .rail .brand { padding: 18px 20px 4px; color: #fff; font-weight: 800; font-stretch: 118%; font-size: 22px; letter-spacing: -0.01em; }
+  .rail .estate { padding: 0 20px 18px; font-size: 14px; }
+  .rail nav { display: grid; gap: 2px; padding: 0 10px; }
+  .rail nav a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 8px; color: var(--rail-ink); text-decoration: none; font-weight: 600; }
+  .rail nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .rail nav a[aria-current="page"] { background: rgba(242,169,0,.14); color: #fff; box-shadow: inset 3px 0 0 var(--amber); }
+  .rail .badge { background: var(--stop); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 800; min-width: 22px; text-align: center; padding: 1px 7px; }
+  .rail .me { margin-top: auto; padding: 16px 20px 20px; border-top: 1px solid rgba(255,255,255,.08); font-size: 14px; }
+  .rail .me b { display: block; color: #fff; }
+  .rail .me button { margin-top: 10px; background: transparent; border: 1.5px solid rgba(255,255,255,.2); color: var(--rail-ink); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 600; }
+
+  main { padding: 28px 32px 48px; min-width: 0; max-width: 1180px; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  h1.title { font-size: 34px; font-weight: 800; font-stretch: 116%; letter-spacing: -0.02em; line-height: 1.05; margin: 0; }
+  .sub { color: var(--muted); margin: 6px 0 0; }
+  h2 { font-size: 19px; font-weight: 800; font-stretch: 110%; margin: 0 0 12px; }
+
+  /* ---------- Controls ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 0; font-weight: 700; font-size: 15px; white-space: nowrap; text-decoration: none; }
+  .btn.primary { background: var(--amber); color: #13233A; box-shadow: 0 2px 0 var(--amber-edge); }
+  .btn.primary:active { transform: translateY(2px); box-shadow: none; }
+  .btn.dark { background: var(--ink); color: var(--surface); }
+  .btn.go { background: var(--go); color: #fff; }
+  .btn.ghost { background: transparent; border: 1.5px solid var(--line); }
+  .btn.danger { background: transparent; border: 1.5px solid var(--stop); color: var(--stop); }
+  .btn.small { min-height: 34px; padding: 0 12px; font-size: 14px; border-radius: 8px; }
+  .btn.block { width: 100%; min-height: 52px; font-size: 17px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .actions { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: flex-end; }
+  @media (max-width: 1100px) { .actions { flex-wrap: wrap; } }
+
+  label.field { display: block; font-size: 14px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+  label.field input, label.field select { display: block; width: 100%; margin-top: 6px; padding: 11px 12px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--surface); font-size: 16px; font-weight: 500; color: var(--ink); }
+  label.field input:focus, label.field select:focus { border-color: var(--ink); outline: none; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .error { color: var(--stop); font-weight: 600; min-height: 1.4em; margin: 0 0 10px; }
+  .hint { display: block; font-weight: 400; margin-top: 4px; }
+
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; background: var(--surface); padding: 14px; border-radius: 12px; margin-bottom: 14px; }
+  .filters label.field { margin: 0; flex: 1 1 150px; }
+  .filters label.field.wide { flex: 3 1 240px; }
+  .filters input, .filters select { height: 44px; margin-top: 6px; }
+  .filters label.field input, .filters label.field select { padding-top: 0; padding-bottom: 0; }
+  .seg { display: inline-flex; background: var(--surface); border-radius: 10px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+  .seg button { border: 0; background: transparent; padding: 7px 13px; border-radius: 8px; font-weight: 700; font-size: 14px; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+  /* ---------- Gate board: today at a glance ---------- */
+  .board { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface); border-radius: 14px; overflow: hidden; margin-bottom: 22px; }
+  .board .cell { padding: 16px 18px 18px; border-right: 1px solid var(--line); }
+  .board .cell:last-child { border-right: 0; }
+  .board .n { font-size: 40px; font-weight: 800; font-stretch: 112%; font-variant-numeric: tabular-nums; line-height: 1; }
+  .board .l { color: var(--muted); font-size: 14px; font-weight: 600; margin-top: 6px; }
+  .board .cell.inside { background: var(--ink); color: var(--surface); }
+  .board .cell.inside .l { color: var(--rail-ink); }
+  .board .cell.warn .n { color: var(--stop); }
+
+  .alert { display: flex; align-items: center; gap: 14px; background: var(--stop-soft); border-left: 5px solid var(--stop); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .alert p { margin: 0; flex: 1; }
+  .alert b { font-weight: 800; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: var(--surface); border-radius: 14px; padding: 18px; min-width: 0; }
+  .panel .head2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .panel .head2 a { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+  .feed { list-style: none; margin: 0; padding: 0; }
+  .feed li { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 12px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
+  .feed li:first-child { border-top: 0; }
+  .feed .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; }
+  .dot.allowed { background: var(--go); }
+  .dot.denied { background: var(--stop); }
+  .dot.out { background: var(--line); }
+  .feed .what { font-weight: 700; }
+  .feed .meta { grid-column: 2 / 4; color: var(--muted); font-size: 14px; }
+  .feed .time { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .feed .btn { grid-column: 3; grid-row: 1 / 3; align-self: center; }
+
+  /* ---------- Tables ---------- */
+  .tablewrap { background: var(--surface); border-radius: 14px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 700; padding: 12px 14px; border-bottom: 1.5px solid var(--line); white-space: nowrap; }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 15px; }
+  tr:last-child td { border-bottom: 0; }
+  td .strong { font-weight: 700; display: block; }
+  td .soft { color: var(--muted); font-size: 14px; display: block; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.inactive td { opacity: .55; }
+  tr.inactive td:last-child { opacity: 1; }
+
+  .pill { display: inline-block; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .pill.allowed, .pill.used, .pill.ok { background: var(--go-soft); color: var(--go); }
+  .pill.denied, .pill.locked { background: var(--stop-soft); color: var(--stop); }
+  .pill.active, .pill.inside { background: var(--wait-soft); color: var(--ink); }
+  .pill.ended, .pill.off { border: 1.5px solid var(--line); color: var(--muted); }
+
+  .empty { text-align: center; color: var(--muted); padding: 34px 16px; }
+  .more { text-align: center; padding: 14px; }
+
+  /* ---------- Dialogs ---------- */
+  dialog { border: 0; border-radius: 16px; padding: 0; width: min(480px, calc(100% - 24px)); background: var(--surface); color: var(--ink); }
+  dialog::backdrop { background: rgba(9, 16, 26, .55); }
+  dialog .inner { padding: 22px 22px 20px; }
+  dialog h2 { font-size: 22px; margin-bottom: 6px; }
+  dialog .foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+
+  /* The one-time credential: the same slot treatment as the gate code */
+  .secret { border: 2px dashed var(--ink); border-radius: 12px; padding: 16px; text-align: center; margin: 14px 0; }
+  .secret .val { font-size: 32px; font-weight: 800; font-stretch: 105%; letter-spacing: .06em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .secret .who { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .note { background: var(--wait-soft); border-radius: 10px; padding: 11px 13px; font-size: 14.5px; margin: 0 0 14px; }
+  .stack { display: grid; gap: 8px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 12px 18px; border-radius: 12px; font-weight: 600; max-width: calc(100% - 32px); z-index: 10; }
+
+  /* ---------- Phone: rail becomes a top bar with scrolling tabs ---------- */
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: minmax(0, 1fr); }
+    .rail { position: sticky; top: 0; height: auto; z-index: 5; min-width: 0; }
+    .rail .hazard { height: 6px; }
+    .rail .top { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 6px; }
+    .rail .brand { padding: 0; font-size: 19px; }
+    .rail .estate { display: none; }
+    .rail nav { display: flex; overflow-x: auto; padding: 0 8px 8px; gap: 4px; scrollbar-width: none; }
+    .rail nav a { flex: none; padding: 8px 12px; }
+    .rail nav a[aria-current="page"] { box-shadow: inset 0 -3px 0 var(--amber); }
+    .rail .me { display: none; }
+    .rail .mobile-out { display: inline-flex !important; }
+    main { padding: 18px 14px 40px; }
+    h1.title { font-size: 28px; }
+    .board { grid-template-columns: repeat(2, 1fr); }
+    .board .cell { border-bottom: 1px solid var(--line); }
+    .board .cell.inside { grid-column: 1 / -1; }
+    .cols { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+  .rail .top { display: contents; }
+  .rail .mobile-out { display: none; background: transparent; border: 1.5px solid rgba(255,255,255,.2); color: var(--rail-ink); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; }
+  @media (max-width: 860px) { .rail .top { display: flex; } }
+</style>
+</head>
+<body>
+
+<!-- ================= Sign in ================= -->
+<section class="login" id="v-login" hidden>
+  <div class="login-card">
+    <div class="hazard" aria-hidden="true"></div>
+    <div class="inner">
+      <h1>Estate admin</h1>
+      <p class="lead">Sign in to manage residents, guards and the gate log.</p>
+      <form id="login-form" novalidate>
+        <label class="field">Phone number
+          <input id="l-phone" type="tel" inputmode="tel" autocomplete="username" placeholder="0803 123 4567">
+        </label>
+        <label class="field">Password
+          <input id="l-pass" type="password" autocomplete="current-password">
+        </label>
+        <p class="error" id="l-error" role="alert"></p>
+        <button class="btn dark block" id="l-submit" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ================= App ================= -->
+<div class="shell" id="app" hidden>
+  <aside class="rail">
+    <div class="hazard" aria-hidden="true"></div>
+    <div class="top">
+      <div class="brand">BIVAS</div>
+      <button class="mobile-out" data-logout>Sign out</button>
+    </div>
+    <div class="estate" id="rail-estate"></div>
+    <nav id="nav">
+      <a href="#overview">Overview <span class="badge" id="nav-alerts" hidden></span></a>
+      <a href="#log">Gate log</a>
+      <a href="#invites">Invites</a>
+      <a href="#residents">Residents</a>
+      <a href="#guards">Guards</a>
+      <a href="#audit">Audit trail</a>
+    </nav>
+    <div class="me"><b id="me-name"></b>Estate manager<br><button data-logout>Sign out</button></div>
+  </aside>
+
+  <main>
+    <!-- ---------- Overview ---------- -->
+    <section id="p-overview" hidden>
+      <div class="head">
+        <div><h1 class="title">Today at the gate</h1><p class="sub" id="ov-date"></p></div>
+        <button class="btn ghost small" id="ov-refresh">Refresh</button>
+      </div>
+      <div id="ov-alerts"></div>
+      <div class="board" id="ov-board"></div>
+      <div class="cols">
+        <div class="panel">
+          <div class="head2"><h2>Inside the estate now</h2><a href="#log" data-inside-link>Full list</a></div>
+          <ul class="feed" id="ov-inside"></ul>
+        </div>
+        <div class="panel">
+          <div class="head2"><h2>Latest at the gate</h2><a href="#log">Gate log</a></div>
+          <ul class="feed" id="ov-recent"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Gate log ---------- -->
+    <section id="p-log" hidden>
+      <div class="head"><div><h1 class="title">Gate log</h1><p class="sub">Every visitor let in or turned away, newest first.</p></div></div>
+      <form class="filters" id="log-filters">
+        <label class="field wide">Search<input id="lf-q" placeholder="Visitor name, phone or plate"></label>
+        <label class="field">From<input id="lf-from" type="date"></label>
+        <label class="field">To<input id="lf-to" type="date"></label>
+        <label class="field">Show
+          <select id="lf-show">
+            <option value="">Everyone</option>
+            <option value="allowed">Let in</option>
+            <option value="denied">Turned away</option>
+            <option value="inside">Still inside</option>
+          </select>
+        </label>
+        <button class="btn dark" type="submit">Apply</button>
+        <button class="btn ghost" type="button" id="lf-clear">Clear</button>
+      </form>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Visitor</th><th>Going to</th><th>Result</th><th>In</th><th>Out</th><th>Guard</th><th></th></tr></thead>
+          <tbody id="log-rows"></tbody>
+        </table>
+        <div class="more" id="log-more" hidden><button class="btn ghost small">Load older entries</button></div>
+      </div>
+    </section>
+
+    <!-- ---------- Invites ---------- -->
+    <section id="p-invites" hidden>
+      <div class="head">
+        <div><h1 class="title">Invites</h1><p class="sub">Gate codes residents have created. Codes themselves are never visible, even here.</p></div>
+      </div>
+      <div class="filters">
+        <div class="seg" id="inv-status" role="group" aria-label="Status">
+          <button type="button" data-s="active" aria-pressed="true">Active</button>
+          <button type="button" data-s="used" aria-pressed="false">Used</button>
+          <button type="button" data-s="cancelled" aria-pressed="false">Cancelled</button>
+          <button type="button" data-s="expired" aria-pressed="false">Expired</button>
+          <button type="button" data-s="all" aria-pressed="false">All</button>
+        </div>
+        <label class="field wide"><input id="inv-q" placeholder="Search visitor or host" aria-label="Search invites"></label>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Visitor</th><th>Invited by</th><th>Valid</th><th>Status</th><th></th></tr></thead>
+          <tbody id="inv-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Residents ---------- -->
+    <section id="p-residents" hidden>
+      <div class="head">
+        <div><h1 class="title">Residents</h1><p class="sub" id="res-count"></p></div>
+        <button class="btn primary" id="res-add">Add resident</button>
+      </div>
+      <div class="filters"><label class="field wide"><input id="res-q" placeholder="Search name, phone or unit" aria-label="Search residents"></label></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Resident</th><th>Unit</th><th>Phone</th><th>Active invites</th><th>Status</th><th></th></tr></thead>
+          <tbody id="res-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Guards ---------- -->
+    <section id="p-guards" hidden>
+      <div class="head">
+        <div><h1 class="title">Guards</h1><p class="sub">Security staff who sign in to the gate screen with a 6-digit PIN.</p></div>
+        <button class="btn primary" id="st-add">Add guard</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Guard</th><th>Phone</th><th>Shift</th><th>Last at the gate</th><th>Status</th><th></th></tr></thead>
+          <tbody id="st-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Audit ---------- -->
+    <section id="p-audit" hidden>
+      <div class="head"><div><h1 class="title">Audit trail</h1><p class="sub">Every change made from this dashboard. It can't be edited or deleted, including by admins.</p></div></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>When</th><th>What happened</th><th>By</th><th>From</th></tr></thead>
+          <tbody id="au-rows"></tbody>
+        </table>
+        <div class="more" id="au-more" hidden><button class="btn ghost small">Load older</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= Dialogs ================= -->
+<dialog id="d-resident">
+  <form class="inner" id="res-form" novalidate>
+    <h2 id="rf-title">Add resident</h2>
+    <p class="sub" style="margin-bottom:16px">They'll sign in to the resident screen with their phone number.</p>
+    <label class="field">Full name<input id="rf-name" maxlength="150" autocomplete="off"></label>
+    <div class="grid2">
+      <label class="field">Phone number<input id="rf-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567"></label>
+      <label class="field">Email (optional)<input id="rf-email" type="email" autocomplete="off"></label>
+      <label class="field">Unit<input id="rf-unit" list="unit-list" maxlength="50" autocomplete="off" placeholder="B12"><span class="hint">Pick one or type a new unit</span></label>
+      <label class="field">Block (optional)<input id="rf-block" maxlength="50" autocomplete="off" placeholder="B"></label>
+    </div>
+    <datalist id="unit-list"></datalist>
+    <p class="error" id="rf-error" role="alert"></p>
+    <div class="foot">
+      <button class="btn ghost" type="button" data-close>Cancel</button>
+      <button class="btn dark" type="submit" id="rf-submit">Add resident</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="d-staff">
+  <form class="inner" id="st-form" novalidate>
+    <h2 id="sf-title">Add guard</h2>
+    <p class="sub" style="margin-bottom:16px">They'll sign in to the gate screen with their phone number and a PIN.</p>
+    <label class="field">Full name<input id="sf-name" maxlength="150" autocomplete="off"></label>
+    <div class="grid2">
+      <label class="field">Phone number<input id="sf-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0803 123 4567"></label>
+      <label class="field">Shift (optional)<input id="sf-shift" maxlength="50" autocomplete="off" placeholder="Day, Night"></label>
+    </div>
+    <label class="field">Role
+      <select id="sf-role"><option value="guard">Guard</option><option value="supervisor">Supervisor</option></select>
+    </label>
+    <p class="error" id="sf-error" role="alert"></p>
+    <div class="foot">
+      <button class="btn ghost" type="button" data-close>Cancel</button>
+      <button class="btn dark" type="submit" id="sf-submit">Add guard</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="d-confirm">
+  <div class="inner">
+    <h2 id="cf-title"></h2>
+    <p id="cf-body" style="margin:0 0 16px"></p>
+    <div class="foot">
+      <button class="btn ghost" type="button" data-close>Keep as is</button>
+      <button class="btn danger" type="button" id="cf-go"></button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="d-secret">
+  <div class="inner">
+    <h2 id="sc-title"></h2>
+    <div class="secret"><div class="val" id="sc-val"></div><div class="who" id="sc-who"></div></div>
+    <p class="note">This is shown once. Send it now: nobody, including you, can see it again. If it gets lost, reset it and send the new one.</p>
+    <div class="stack">
+      <a class="btn go block" id="sc-wa" target="_blank" rel="noopener">Send on WhatsApp</a>
+      <button class="btn ghost block" id="sc-copy" type="button">Copy message</button>
+      <button class="btn dark block" id="sc-done" type="button">Done</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  'use strict';
+  const API = new URL('../api/', location.href).href;
+  const STORE = 'bivas.admin.session';
+  const TZ = 'Africa/Lagos';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  let session = load();
+  let me = null;
+
+  /* ---------- Session + API ---------- */
+  function load() {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(STORE) || 'null');
+      return s && new Date(s.expires_at) > new Date() ? s : null;
+    } catch { return null; }
+  }
+  function save() { try { sessionStorage.setItem(STORE, JSON.stringify(session)); } catch {} }
+  function clear() { try { sessionStorage.removeItem(STORE); } catch {} session = null; }
+
+  async function api(path, body) {
+    const opts = { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' } };
+    if (session) opts.headers.Authorization = 'Bearer ' + session.token;
+    if (body) opts.body = JSON.stringify(body);
+    let res;
+    try { res = await fetch(API + path, opts); }
+    catch { return { ok: false, status: 0, data: { error: 'No connection to the server. Check your network and try again.' } }; }
+    let data;
+    try { data = await res.json(); } catch { data = { error: 'The server sent an unexpected reply.' }; }
+    if ((res.status === 401 || (res.status === 403 && session)) && path !== 'auth/login.php') {
+      clear(); showLogin('Your session ended. Sign in again.');
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  /* ---------- Formatting (always Lagos time, 12-hour) ---------- */
+  const dayKey = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(d);
+  const clock = (d) => new Intl.DateTimeFormat('en-NG', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true })
+    .format(d).replace(/\s*([ap])\.?m\.?$/i, (_, x) => ' ' + x.toLowerCase() + 'm');
+  function when(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (dayKey(d) === dayKey(new Date())) return 'Today, ' + clock(d);
+    if (dayKey(d) === dayKey(new Date(Date.now() - 864e5))) return 'Yesterday, ' + clock(d);
+    if (dayKey(d) === dayKey(new Date(Date.now() + 864e5))) return 'Tomorrow, ' + clock(d);
+    return new Intl.DateTimeFormat('en-NG', { timeZone: TZ, day: 'numeric', month: 'short' }).format(d) + ', ' + clock(d);
+  }
+  function ago(iso) {
+    const mins = Math.round((Date.now() - new Date(iso)) / 6e4);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + ' min';
+    const h = Math.floor(mins / 60);
+    return h < 24 ? h + ' hr' + (h > 1 ? 's' : '') : Math.floor(h / 24) + ' day' + (h >= 48 ? 's' : '');
+  }
+  const localPhone = (p) => String(p || '').replace(/^\+234/, '0');
+  /** wa.me needs the international number without "+": 0803... or +234803... -> 234803... */
+  const waNumber = (p) => { const d = String(p || '').replace(/\D/g, ''); return d.startsWith('234') ? d : d.startsWith('0') ? '234' + d.slice(1) : '234' + d; };
+
+  function toast(text) {
+    const t = $('toast'); t.textContent = text; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 3000);
+  }
+  const emptyRow = (cols, text) => `<tr><td colspan="${cols}" class="empty">${esc(text)}</td></tr>`;
+  const loadingRow = (cols) => emptyRow(cols, 'Loading…');
+  const errorRow = (cols, r) => emptyRow(cols, r.data.error || 'Could not load this. Try again.');
+
+  /* ---------- Sign in / out ---------- */
+  function showLogin(msg) {
+    $('app').hidden = true; $('v-login').hidden = false;
+    $('l-error').textContent = msg || '';
+    setTimeout(() => $('l-phone').focus(), 0);
+  }
+  $('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const phone = $('l-phone').value.trim(), password = $('l-pass').value;
+    $('l-error').textContent = '';
+    if (!phone || !password) return ($('l-error').textContent = 'Enter your phone number and password.');
+    $('l-submit').disabled = true;
+    const r = await api('auth/login.php', { as: 'admin', phone, password });
+    $('l-submit').disabled = false;
+    if (!r.ok) {
+      $('l-error').textContent = r.status === 401 ? 'Wrong phone number or password.' : (r.data.error || 'Sign-in failed. Try again.');
+      return;
+    }
+    session = { token: r.data.token, expires_at: r.data.expires_at };
+    save(); $('l-pass').value = '';
+    start();
+  });
+  document.querySelectorAll('[data-logout]').forEach((b) => b.addEventListener('click', async () => {
+    await api('auth/logout.php', {});
+    clear(); showLogin('You signed out.');
+  }));
+
+  async function start() {
+    const r = await api('auth/me.php');
+    if (!r.ok) return;
+    if (r.data.user_type !== 'admin') { clear(); return showLogin('This page is for estate managers.'); }
+    me = r.data;
+    $('me-name').textContent = me.name;
+    $('rail-estate').textContent = me.estate_name;
+    $('v-login').hidden = true; $('app').hidden = false;
+    route();
+  }
+
+  /* ---------- Routing ---------- */
+  const PAGES = { overview: loadOverview, log: loadLog, invites: loadInvites, residents: loadResidents, guards: loadGuards, audit: loadAudit };
+  function route() {
+    if (!me) return;
+    const page = PAGES[location.hash.slice(1)] ? location.hash.slice(1) : 'overview';
+    for (const p of Object.keys(PAGES)) $('p-' + p).hidden = p !== page;
+    document.querySelectorAll('#nav a').forEach((a) => {
+      if (a.getAttribute('href') === '#' + page) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    document.title = 'BIVAS · ' + document.querySelector(`#nav a[href="#${page}"]`).firstChild.textContent.trim();
+    window.scrollTo(0, 0);
+    PAGES[page]();
+  }
+  window.addEventListener('hashchange', route);
+
+  /* ---------- Dialog helpers ---------- */
+  document.querySelectorAll('dialog [data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
+
+  function confirmAction(title, body, goLabel) {
+    return new Promise((resolve) => {
+      const d = $('d-confirm');
+      $('cf-title').textContent = title; $('cf-body').textContent = body; $('cf-go').textContent = goLabel;
+      const done = (v) => { d.removeEventListener('close', onClose); $('cf-go').onclick = null; resolve(v); };
+      const onClose = () => done(false);
+      $('cf-go').onclick = () => { d.removeEventListener('close', onClose); d.close(); resolve(true); };
+      d.addEventListener('close', onClose);
+      d.showModal();
+    });
+  }
+
+  /** Shows a one-time password or PIN, with WhatsApp/copy, and forgets it on close. */
+  let secretMsg = '', secretSent = false;
+  function showSecret({ title, label, value, name, phone, message }) {
+    $('sc-title').textContent = title;
+    $('sc-val').textContent = value;
+    $('sc-who').textContent = label + ' for ' + name;
+    secretMsg = message; secretSent = false;
+    $('sc-wa').href = 'https://wa.me/' + waNumber(phone) + '?text=' + encodeURIComponent(message);
+    $('d-secret').showModal();
+  }
+  $('sc-wa').addEventListener('click', () => { secretSent = true; });
+  $('sc-copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(secretMsg); }
+    catch {
+      const t = Object.assign(document.createElement('textarea'), { value: secretMsg });
+      document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+    }
+    secretSent = true; toast('Message copied.');
+  });
+  $('sc-done').addEventListener('click', () => {
+    if (!secretSent && !confirm("You haven't sent it yet, and it can't be shown again. Close anyway?")) return;
+    $('d-secret').close();
+  });
+  $('d-secret').addEventListener('close', () => { $('sc-val').textContent = ''; secretMsg = ''; });
+  $('d-secret').addEventListener('cancel', (e) => { if (!secretSent) e.preventDefault(); });
+
+  const residentMessage = (name, phone, pw) =>
+    `Hi ${name.split(' ')[0]}, your BIVAS account for ${me.estate_name} is ready.\n\n` +
+    `Sign in at ${new URL('../resident/', location.href).href} with your phone number (${localPhone(phone)}) and this temporary password:\n\n${pw}\n\n` +
+    `Use it to invite visitors and send them gate codes.`;
+  const guardMessage = (name, phone, pin) =>
+    `Hi ${name.split(' ')[0]}, your BIVAS gate login for ${me.estate_name} is ready.\n\n` +
+    `Open ${new URL('../gate/', location.href).href} and sign in with your phone number (${localPhone(phone)}) and PIN ${pin}.\n\n` +
+    `Don't share your PIN with anyone.`;
+
+  /* =========================================================
+     Overview
+     ========================================================= */
+  $('ov-refresh').addEventListener('click', () => loadOverview());
+  async function loadOverview() {
+    $('ov-date').textContent = new Intl.DateTimeFormat('en-NG', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()) + ' · ' + me.estate_name;
+    const [ov, inside] = await Promise.all([api('admin/overview.php'), api('admin/entries.php?inside=1')]);
+    if (!ov.ok) { $('ov-board').innerHTML = `<div class="cell empty" style="grid-column:1/-1">${esc(ov.data.error)}</div>`; return; }
+    const s = ov.data.stats;
+
+    $('ov-board').innerHTML = [
+      ['inside', s.inside_now, 'Inside now'],
+      ['', s.let_in_today, 'Let in today'],
+      [s.turned_away_today ? 'warn' : '', s.turned_away_today, 'Turned away today'],
+      [s.wrong_codes_today >= 5 ? 'warn' : '', s.wrong_codes_today, 'Wrong codes today'],
+      ['', s.active_invites, 'Active invites'],
+    ].map(([cls, n, l]) => `<div class="cell ${cls}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+    const locked = ov.data.locked_guards;
+    $('nav-alerts').hidden = !locked.length;
+    $('nav-alerts').textContent = locked.length;
+    $('ov-alerts').innerHTML = locked.map((g) => `
+      <div class="alert">
+        <p><b>${esc(g.full_name)} is locked out of the gate screen</b> after too many wrong codes. Check with them before clearing it: it could be typos, or someone guessing codes.</p>
+        <button class="btn dark small" data-unlock="${g.staff_id}" data-name="${esc(g.full_name)}">Clear lockout</button>
+      </div>`).join('');
+
+    const list = inside.ok ? inside.data.entries : [];
+    $('ov-inside').innerHTML = list.length ? list.slice(0, 8).map((e) => `
+      <li>
+        <span class="dot allowed"></span>
+        <span class="what">${esc(e.visitor_name)}</span>
+        <button class="btn ghost small" data-checkout="${e.entry_id}" data-name="${esc(e.visitor_name)}">Check out</button>
+        <span class="meta">${esc(e.destination)} · ${ago(e.check_in_time) === 'just now' ? 'arrived just now' : 'in for ' + ago(e.check_in_time)}</span>
+      </li>`).join('') : '<li class="empty" style="display:block">Nobody is inside right now.</li>';
+
+    $('ov-recent').innerHTML = ov.data.recent.length ? ov.data.recent.map((e) => {
+      const out = e.check_out_time;
+      const what = e.decision === 'denied' ? 'Turned away' : out ? 'Left' : 'Let in';
+      return `<li>
+        <span class="dot ${e.decision === 'denied' ? 'denied' : out ? 'out' : 'allowed'}"></span>
+        <span class="what">${esc(e.visitor_name)} · ${what}</span>
+        <span class="time">${esc(when(out || e.check_in_time).replace('Today, ', ''))}</span>
+        <span class="meta">${esc(e.destination)} · by ${esc(e.guard_name)}${e.notes ? ' · “' + esc(e.notes) + '”' : ''}</span>
+      </li>`;
+    }).join('') : '<li class="empty" style="display:block">No gate activity yet.</li>';
+  }
+
+  document.addEventListener('click', async (e) => {
+    const unlock = e.target.closest('[data-unlock]');
+    if (unlock) {
+      if (!(await confirmAction('Clear lockout?', `${unlock.dataset.name} can use the gate screen again straight away. Their wrong attempts stay in the records.`, 'Clear lockout'))) return;
+      const r = await api('admin/staff.php', { action: 'unlock', staff_id: Number(unlock.dataset.unlock) });
+      if (!r.ok) return toast(r.data.error || 'Could not clear the lockout.');
+      toast(`${unlock.dataset.name} can sign in to the gate again.`);
+      route();
+      return;
+    }
+    const co = e.target.closest('[data-checkout]');
+    if (co) {
+      if (!(await confirmAction('Check out ' + co.dataset.name + '?', 'Use this when a visitor left but the guard forgot to check them out. It will be recorded in the audit trail.', 'Check out'))) return;
+      const r = await api('admin/entries.php', { action: 'check_out', entry_id: Number(co.dataset.checkout) });
+      if (!r.ok) return toast(r.data.error || 'Could not check them out.');
+      toast(co.dataset.name + ' checked out.');
+      route();
+    }
+  });
+  document.querySelector('[data-inside-link]').addEventListener('click', () => { $('lf-show').value = 'inside'; });
+
+  /* =========================================================
+     Gate log
+     ========================================================= */
+  let logBefore = null;
+  function logQuery(before) {
+    const p = new URLSearchParams();
+    if ($('lf-q').value.trim()) p.set('q', $('lf-q').value.trim());
+    if ($('lf-from').value) p.set('from', $('lf-from').value);
+    if ($('lf-to').value) p.set('to', $('lf-to').value);
+    const show = $('lf-show').value;
+    if (show === 'inside') p.set('inside', '1'); else if (show) p.set('decision', show);
+    if (before) p.set('before', before);
+    return 'admin/entries.php?' + p;
+  }
+  async function loadLog(append) {
+    const body = $('log-rows');
+    if (!append) { body.innerHTML = loadingRow(7); logBefore = null; }
+    const r = await api(logQuery(append ? logBefore : null));
+    if (!r.ok) { body.innerHTML = errorRow(7, r); return; }
+    const rows = r.data.entries.map((e) => {
+      const inside = e.decision === 'allowed' && !e.check_out_time;
+      const result = e.decision === 'denied' ? '<span class="pill denied">Turned away</span>'
+        : inside ? '<span class="pill inside">Inside</span>' : '<span class="pill allowed">Let in</span>';
+      return `<tr>
+        <td><span class="strong">${esc(e.visitor_name)}</span><span class="soft">${esc(localPhone(e.visitor_phone))}${e.vehicle_plate ? ' · ' + esc(e.vehicle_plate) : ''}</span></td>
+        <td><span class="strong">${esc(e.destination)}</span><span class="soft">${e.host_name ? 'Host: ' + esc(e.host_name) : ''}${e.purpose ? ' · ' + esc(e.purpose) : ''}</span></td>
+        <td>${result}${e.notes ? `<span class="soft" style="margin-top:4px">“${esc(e.notes)}”</span>` : ''}</td>
+        <td class="num">${esc(when(e.check_in_time))}</td>
+        <td class="num">${e.check_out_time ? esc(when(e.check_out_time)) : '<span class="soft">—</span>'}</td>
+        <td>${esc(e.guard_name)}</td>
+        <td>${inside ? `<button class="btn ghost small" data-checkout="${e.entry_id}" data-name="${esc(e.visitor_name)}">Check out</button>` : ''}</td>
+      </tr>`;
+    }).join('');
+    if (append) body.insertAdjacentHTML('beforeend', rows);
+    else body.innerHTML = rows || emptyRow(7, 'No gate entries match these filters.');
+    logBefore = r.data.next_before;
+    $('log-more').hidden = !logBefore;
+  }
+  $('log-filters').addEventListener('submit', (e) => { e.preventDefault(); loadLog(); });
+  $('lf-clear').addEventListener('click', () => { $('log-filters').reset(); loadLog(); });
+  $('log-more').querySelector('button').addEventListener('click', () => loadLog(true));
+
+  /* =========================================================
+     Invites
+     ========================================================= */
+  let invStatus = 'active', invTimer;
+  $('inv-status').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    invStatus = b.dataset.s;
+    $('inv-status').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    loadInvites();
+  });
+  $('inv-q').addEventListener('input', () => { clearTimeout(invTimer); invTimer = setTimeout(loadInvites, 300); });
+  const INV = { approved: ['Active', 'active'], pending: ['Pending', 'active'], used: ['Used', 'used'], cancelled: ['Cancelled', 'ended'], expired: ['Expired', 'ended'] };
+
+  async function loadInvites() {
+    const body = $('inv-rows'); body.innerHTML = loadingRow(5);
+    const p = new URLSearchParams({ status: invStatus });
+    if ($('inv-q').value.trim()) p.set('q', $('inv-q').value.trim());
+    const r = await api('admin/invites.php?' + p);
+    if (!r.ok) { body.innerHTML = errorRow(5, r); return; }
+    body.innerHTML = r.data.invites.map((v) => {
+      const [label, cls] = INV[v.status] || [v.status, 'ended'];
+      const live = v.status === 'approved' || v.status === 'pending';
+      const future = new Date(v.valid_from) > new Date();
+      return `<tr>
+        <td><span class="strong">${esc(v.visitor_name)}</span><span class="soft">${esc(localPhone(v.visitor_phone))}${v.purpose ? ' · ' + esc(v.purpose) : ''}</span></td>
+        <td><span class="strong">${esc(v.host_name)}</span><span class="soft">${esc(v.destination)}</span></td>
+        <td class="num">${future ? 'From ' + esc(when(v.valid_from)) + '<br>' : ''}Until ${esc(when(v.valid_to))}</td>
+        <td><span class="pill ${cls}">${label}</span></td>
+        <td>${live ? `<button class="btn danger small" data-cancel-invite="${v.visit_id}" data-name="${esc(v.visitor_name)}" data-host="${esc(v.host_name)}">Cancel code</button>` : ''}</td>
+      </tr>`;
+    }).join('') || emptyRow(5, invStatus === 'active' ? 'No active invites right now.' : 'No invites here.');
+  }
+  $('inv-rows').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-cancel-invite]'); if (!b) return;
+    if (!(await confirmAction('Cancel this gate code?', `${b.dataset.name}'s code from ${b.dataset.host} stops working at the gate immediately. Tell ${b.dataset.host.split(' ')[0]} why, since they won't get a notification.`, 'Cancel code'))) return;
+    const r = await api('admin/invites.php', { action: 'cancel', visit_id: Number(b.dataset.cancelInvite) });
+    if (!r.ok) return toast(r.data.error || 'Could not cancel it.');
+    toast('Code cancelled. It no longer works at the gate.');
+    loadInvites();
+  });
+
+  /* =========================================================
+     Residents
+     ========================================================= */
+  let residents = [], resTimer, editingResident = null;
+  $('res-q').addEventListener('input', () => { clearTimeout(resTimer); resTimer = setTimeout(loadResidents, 300); });
+
+  async function loadResidents() {
+    const body = $('res-rows'); body.innerHTML = loadingRow(6);
+    const q = $('res-q').value.trim();
+    const r = await api('admin/residents.php' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    if (!r.ok) { body.innerHTML = errorRow(6, r); return; }
+    residents = r.data.residents;
+    $('unit-list').innerHTML = r.data.units.map((u) => `<option value="${esc(u.unit_code)}">${esc(u.label)}</option>`).join('');
+    const active = residents.filter((x) => x.is_active).length;
+    $('res-count').textContent = q ? `${residents.length} matching` : `${active} active resident${active === 1 ? '' : 's'} across ${r.data.units.length} unit${r.data.units.length === 1 ? '' : 's'}`;
+    body.innerHTML = residents.map((x) => `
+      <tr class="${x.is_active ? '' : 'inactive'}">
+        <td><span class="strong">${esc(x.full_name)}</span><span class="soft">${esc(x.email || '')}</span></td>
+        <td>${esc(x.unit)}</td>
+        <td class="num">${esc(localPhone(x.phone))}</td>
+        <td class="num">${x.active_invites || '<span class="soft">0</span>'}</td>
+        <td>${x.is_active ? (x.can_sign_in ? '<span class="pill ok">Active</span>' : '<span class="pill active">No password yet</span>') : '<span class="pill off">Deactivated</span>'}</td>
+        <td><div class="actions">
+          ${x.is_active ? `
+            <button class="btn ghost small" data-res-edit="${x.resident_id}">Edit</button>
+            <button class="btn ghost small" data-res-reset="${x.resident_id}">Reset password</button>
+            <button class="btn danger small" data-res-off="${x.resident_id}">Deactivate</button>`
+          : `<button class="btn ghost small" data-res-on="${x.resident_id}">Reactivate</button>`}
+        </div></td>
+      </tr>`).join('') || emptyRow(6, q ? 'No residents match that search.' : 'No residents yet. Add the first one.');
+  }
+
+  function openResident(x) {
+    editingResident = x;
+    $('rf-title').textContent = x ? 'Edit ' + x.full_name : 'Add resident';
+    $('rf-submit').textContent = x ? 'Save changes' : 'Add resident';
+    $('rf-name').value = x?.full_name || '';
+    $('rf-phone').value = x ? localPhone(x.phone) : '';
+    $('rf-email').value = x?.email || '';
+    $('rf-unit').value = x?.unit_code || '';
+    $('rf-block').value = x?.block || '';
+    $('rf-error').textContent = '';
+    $('d-resident').showModal();
+    $('rf-name').focus();
+  }
+  $('res-add').addEventListener('click', () => openResident(null));
+  $('res-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      action: editingResident ? 'update' : 'create',
+      full_name: $('rf-name').value.trim(), phone: $('rf-phone').value.trim(),
+      email: $('rf-email').value.trim(), unit_code: $('rf-unit').value.trim(), block: $('rf-block').value.trim(),
+    };
+    if (editingResident) body.resident_id = editingResident.resident_id;
+    if (!body.full_name) return ($('rf-error').textContent = 'Enter their full name.');
+    if (!body.phone) return ($('rf-error').textContent = 'Enter their phone number.');
+    if (!body.unit_code) return ($('rf-error').textContent = 'Enter their unit.');
+    $('rf-submit').disabled = true;
+    const r = await api('admin/residents.php', body);
+    $('rf-submit').disabled = false;
+    if (!r.ok) return ($('rf-error').textContent = r.data.error || 'Could not save. Try again.');
+    $('d-resident').close();
+    await loadResidents();
+    if (editingResident) return toast('Changes saved.');
+    showSecret({
+      title: body.full_name.split(' ')[0] + ' has been added', label: 'Temporary password',
+      value: r.data.temp_password, name: body.full_name, phone: body.phone,
+      message: residentMessage(body.full_name, body.phone, r.data.temp_password),
+    });
+  });
+
+  $('res-rows').addEventListener('click', async (e) => {
+    const find = (attr) => { const b = e.target.closest(`[${attr}]`); return b && residents.find((x) => x.resident_id === Number(b.getAttribute(attr))); };
+    let x;
+    if ((x = find('data-res-edit'))) return openResident(x);
+    if ((x = find('data-res-reset'))) {
+      if (!(await confirmAction(`Reset ${x.full_name}'s password?`, 'Their current password stops working and they are signed out on every device. You will get a new temporary password to send them.', 'Reset password'))) return;
+      const r = await api('admin/residents.php', { action: 'reset_password', resident_id: x.resident_id });
+      if (!r.ok) return toast(r.data.error || 'Could not reset the password.');
+      return showSecret({ title: 'New password for ' + x.full_name.split(' ')[0], label: 'Temporary password', value: r.data.temp_password, name: x.full_name, phone: x.phone, message: residentMessage(x.full_name, x.phone, r.data.temp_password) });
+    }
+    if ((x = find('data-res-off'))) {
+      const inv = x.active_invites ? ` Their ${x.active_invites} active gate code${x.active_invites > 1 ? 's' : ''} will stop working too.` : '';
+      if (!(await confirmAction(`Deactivate ${x.full_name}?`, `They are signed out everywhere and can't invite visitors anymore.${inv} Use this when someone moves out. You can reactivate them later.`, 'Deactivate'))) return;
+      const r = await api('admin/residents.php', { action: 'deactivate', resident_id: x.resident_id });
+      if (!r.ok) return toast(r.data.error || 'Could not deactivate.');
+      toast(`${x.full_name} deactivated${r.data.invites_cancelled ? `; ${r.data.invites_cancelled} code${r.data.invites_cancelled > 1 ? 's' : ''} cancelled` : ''}.`);
+      return loadResidents();
+    }
+    if ((x = find('data-res-on'))) {
+      const r = await api('admin/residents.php', { action: 'activate', resident_id: x.resident_id });
+      if (!r.ok) return toast(r.data.error || 'Could not reactivate.');
+      toast(`${x.full_name} reactivated. Reset their password if they've forgotten it.`);
+      loadResidents();
+    }
+  });
+
+  /* =========================================================
+     Guards
+     ========================================================= */
+  let staff = [], editingStaff = null;
+  async function loadGuards() {
+    const body = $('st-rows'); body.innerHTML = loadingRow(6);
+    const r = await api('admin/staff.php');
+    if (!r.ok) { body.innerHTML = errorRow(6, r); return; }
+    staff = r.data.staff;
+    body.innerHTML = staff.map((s) => `
+      <tr class="${s.is_active ? '' : 'inactive'}">
+        <td><span class="strong">${esc(s.full_name)}</span><span class="soft">${s.role === 'supervisor' ? 'Supervisor' : 'Guard'}</span></td>
+        <td class="num">${esc(localPhone(s.phone))}</td>
+        <td>${esc(s.shift || '')}</td>
+        <td class="num">${s.last_gate_action ? esc(when(s.last_gate_action)) : '<span class="soft">Never</span>'}</td>
+        <td>${!s.is_active ? '<span class="pill off">Deactivated</span>'
+          : s.locked_out ? '<span class="pill locked">Locked out</span>'
+          : '<span class="pill ok">Active</span>'}
+          ${s.is_active && s.wrong_codes && !s.locked_out ? `<span class="soft">${s.wrong_codes} wrong code${s.wrong_codes > 1 ? 's' : ''} recently</span>` : ''}</td>
+        <td><div class="actions">
+          ${!s.is_active ? `<button class="btn ghost small" data-st-on="${s.staff_id}">Reactivate</button>` : `
+            ${s.locked_out ? `<button class="btn dark small" data-unlock="${s.staff_id}" data-name="${esc(s.full_name)}">Clear lockout</button>` : ''}
+            <button class="btn ghost small" data-st-edit="${s.staff_id}">Edit</button>
+            <button class="btn ghost small" data-st-pin="${s.staff_id}">New PIN</button>
+            <button class="btn danger small" data-st-off="${s.staff_id}">Deactivate</button>`}
+        </div></td>
+      </tr>`).join('') || emptyRow(6, 'No guards yet. Add the first one.');
+  }
+  function openStaff(s) {
+    editingStaff = s;
+    $('sf-title').textContent = s ? 'Edit ' + s.full_name : 'Add guard';
+    $('sf-submit').textContent = s ? 'Save changes' : 'Add guard';
+    $('sf-name').value = s?.full_name || '';
+    $('sf-phone').value = s ? localPhone(s.phone) : '';
+    $('sf-shift').value = s?.shift || '';
+    $('sf-role').value = s?.role || 'guard';
+    $('sf-error').textContent = '';
+    $('d-staff').showModal();
+    $('sf-name').focus();
+  }
+  $('st-add').addEventListener('click', () => openStaff(null));
+  $('st-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      action: editingStaff ? 'update' : 'create',
+      full_name: $('sf-name').value.trim(), phone: $('sf-phone').value.trim(),
+      shift: $('sf-shift').value.trim(), role: $('sf-role').value,
+    };
+    if (editingStaff) body.staff_id = editingStaff.staff_id;
+    if (!body.full_name) return ($('sf-error').textContent = 'Enter their full name.');
+    if (!body.phone) return ($('sf-error').textContent = 'Enter their phone number.');
+    $('sf-submit').disabled = true;
+    const r = await api('admin/staff.php', body);
+    $('sf-submit').disabled = false;
+    if (!r.ok) return ($('sf-error').textContent = r.data.error || 'Could not save. Try again.');
+    $('d-staff').close();
+    await loadGuards();
+    if (editingStaff) return toast('Changes saved.');
+    showSecret({ title: body.full_name.split(' ')[0] + ' has been added', label: 'Gate PIN', value: r.data.pin, name: body.full_name, phone: body.phone, message: guardMessage(body.full_name, body.phone, r.data.pin) });
+  });
+  $('st-rows').addEventListener('click', async (e) => {
+    const find = (attr) => { const b = e.target.closest(`[${attr}]`); return b && staff.find((x) => x.staff_id === Number(b.getAttribute(attr))); };
+    let s;
+    if ((s = find('data-st-edit'))) return openStaff(s);
+    if ((s = find('data-st-pin'))) {
+      if (!(await confirmAction(`Give ${s.full_name} a new PIN?`, 'Their current PIN stops working and they are signed out of the gate screen. You will get a new PIN to send them.', 'Create new PIN'))) return;
+      const r = await api('admin/staff.php', { action: 'reset_pin', staff_id: s.staff_id });
+      if (!r.ok) return toast(r.data.error || 'Could not reset the PIN.');
+      return showSecret({ title: 'New PIN for ' + s.full_name.split(' ')[0], label: 'Gate PIN', value: r.data.pin, name: s.full_name, phone: s.phone, message: guardMessage(s.full_name, s.phone, r.data.pin) });
+    }
+    if ((s = find('data-st-off'))) {
+      if (!(await confirmAction(`Deactivate ${s.full_name}?`, 'They are signed out of the gate screen immediately and cannot sign in again. Use this when a guard leaves. You can reactivate them later.', 'Deactivate'))) return;
+      const r = await api('admin/staff.php', { action: 'deactivate', staff_id: s.staff_id });
+      if (!r.ok) return toast(r.data.error || 'Could not deactivate.');
+      toast(s.full_name + ' deactivated.');
+      return loadGuards();
+    }
+    if ((s = find('data-st-on'))) {
+      const r = await api('admin/staff.php', { action: 'activate', staff_id: s.staff_id });
+      if (!r.ok) return toast(r.data.error || 'Could not reactivate.');
+      toast(s.full_name + ' reactivated.');
+      loadGuards();
+    }
+  });
+
+  /* =========================================================
+     Audit trail
+     ========================================================= */
+  let auBefore = null;
+  async function loadAudit(append) {
+    const body = $('au-rows');
+    if (!append) { body.innerHTML = loadingRow(4); auBefore = null; }
+    const r = await api('admin/audit.php' + (append && auBefore ? '?before=' + auBefore : ''));
+    if (!r.ok) { body.innerHTML = errorRow(4, r); return; }
+    const rows = r.data.entries.map((a) => `<tr>
+      <td class="num">${esc(when(a.created_at))}</td>
+      <td>${esc(a.summary)}</td>
+      <td>${esc(a.admin_name)}</td>
+      <td class="num"><span class="soft">${esc(a.ip_address || '')}</span></td>
+    </tr>`).join('');
+    if (append) body.insertAdjacentHTML('beforeend', rows);
+    else body.innerHTML = rows || emptyRow(4, 'No admin actions yet. Changes you make will appear here.');
+    auBefore = r.data.next_before;
+    $('au-more').hidden = !auBefore;
+  }
+  $('au-more').querySelector('button').addEventListener('click', () => loadAudit(true));
+
+  if (session) start(); else showLogin();
+})();
+</script>
+</body>
+</html>

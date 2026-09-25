@@ -6,7 +6,17 @@ Visitor and access control for gated estates. Residents invite guests and get a 
 
 ## Admin (estate manager)
 
-The admin API lets an estate manager run the estate without touching the database: a live overview (who's inside, today's entries, turned-away visitors, wrong-code attempts, locked-out guards), searchable gate logs, every invite in the estate, and management of residents and guards. The admin screens are next on the roadmap; the API is complete and tested.
+`admin/index.html` is the estate manager's dashboard, built for a laptop and usable on a phone:
+
+- **Overview:** today at the gate (inside now, let in, turned away, wrong codes, active invites), an alert when a guard is locked out, who's inside with one-tap check-out, and the latest gate activity.
+- **Gate log:** every entry, searchable by visitor name, phone or plate, filterable by date and result.
+- **Invites:** every gate code in the estate by status, with cancel for anything suspicious.
+- **Residents and guards:** add, edit, deactivate, reactivate, reset passwords or PINs, clear lockouts. New credentials appear once, with **Send on WhatsApp** and a ready-made sign-in message.
+- **Audit trail:** every change made from the dashboard.
+
+The admin session lives only in the browser tab (sessionStorage), so closing the tab signs the manager out, which is the safer default for a shared office computer.
+
+Open `https://yourdomain/admin/` to use it.
 
 - **Admins are a separate account type** with real passwords, not 6-digit PINs, and their accounts lock for 15 minutes after 5 wrong passwords.
 - **Every admin action is recorded** in an audit trail (who, what, to whom, from which IP). There is no endpoint to edit or delete it.
