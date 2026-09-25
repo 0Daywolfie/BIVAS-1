@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13233A">
+<title>BIVAS Gate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E6E9ED;        /* concrete */
+    --surface: #FFFFFF;
+    --ink: #13233A;       /* uniform navy */
+    --muted: #5A6778;
+    --line: #C9CFD6;
+    --amber: #F2A900;     /* barrier amber */
+    --amber-ink: #13233A;
+    --go: #0A7A3F;
+    --go-soft: #DDF1E5;
+    --go-text: #FFFFFF;
+    --stop: #C21F32;
+    --stop-soft: #F9E0E3;
+    --wait-soft: #FFF1CC;
+    --key-edge: #B4BCC6;
+    --font: "Archivo", "Arial Narrow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1520;
+      --surface: #172233;
+      --ink: #EEF2F7;
+      --muted: #9AA7B8;
+      --line: #2A3950;
+      --go-soft: #0F3322;
+      --stop-soft: #3A1219;
+      --wait-soft: #3A2E08;
+      --key-edge: #0A0F17;
+      --go: #2FBF71;
+      --go-text: #04150B;
+      --stop: #FF5C6E;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .app { max-width: 460px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; padding: 12px 16px 20px; }
+
+  /* ---------- Header ---------- */
+  .bar { display: flex; align-items: center; gap: 10px; padding: 4px 0 14px; }
+  .brand { font-weight: 800; font-stretch: 115%; letter-spacing: -0.01em; font-size: 18px; }
+  .who { color: var(--muted); font-size: 14px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip {
+    border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px;
+    padding: 7px 13px; font-size: 14px; font-weight: 600; white-space: nowrap;
+  }
+  .chip b { font-variant-numeric: tabular-nums; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+  /* ---------- Code display ---------- */
+  .prompt { font-size: 15px; color: var(--muted); margin: 6px 0 10px; }
+  .slots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 18px; }
+  .slot {
+    aspect-ratio: 3 / 4; display: grid; place-items: center;
+    background: var(--surface); border: 2px solid var(--line); border-radius: 10px;
+    font-size: clamp(30px, 10vw, 44px); font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .slot.filled { border-color: var(--ink); }
+  .slot.next { border-color: var(--amber); box-shadow: inset 0 -4px 0 var(--amber); }
+  .slots.shake { animation: shake .35s; }
+  @keyframes shake { 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+
+  /* ---------- Keypad ---------- */
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; }
+  .key {
+    min-height: 66px; border: 0; border-radius: 12px; background: var(--surface);
+    box-shadow: 0 3px 0 var(--key-edge); font-size: 28px; font-weight: 700;
+    font-variant-numeric: tabular-nums; touch-action: manipulation;
+  }
+  .key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--key-edge); }
+  .key.alt { font-size: 16px; font-weight: 600; color: var(--muted); }
+  .key.go { background: var(--amber); color: var(--amber-ink); font-size: 18px; font-weight: 800; box-shadow: 0 3px 0 #B67F00; }
+  .key.go:disabled { opacity: .45; }
+  .key.go:disabled:active { transform: none; box-shadow: 0 3px 0 #B67F00; }
+
+  /* ---------- Result card ---------- */
+  .card { background: var(--surface); border-radius: 16px; padding: 0 18px 18px; overflow: hidden; }
+  .barrier {
+    height: 64px; margin: 0 -18px 16px; padding: 0 18px 14px;
+    display: flex; align-items: flex-end; gap: 12px; background: var(--wait-soft);
+  }
+  .barrier .post { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); flex: none; z-index: 1; }
+  .barrier .arm {
+    height: 14px; flex: 1; margin: 0 0 4px -18px; border-radius: 0 7px 7px 0;
+    background: repeating-linear-gradient(-45deg, var(--amber) 0 14px, var(--ink) 14px 28px);
+    transform-origin: 0 50%; transition: transform .7s cubic-bezier(.3,1.4,.5,1);
+  }
+  .state-go .barrier { background: var(--go-soft); }
+  .state-go .barrier .arm { transform: rotate(-35deg) scaleX(.33); }
+  .state-stop .barrier { background: var(--stop-soft); }
+  .state-stop .barrier .arm { background: repeating-linear-gradient(-45deg, var(--stop) 0 14px, #fff 14px 28px); }
+  .barrier .verdict {
+    flex: none; align-self: center; margin-top: 14px; font-weight: 800; font-size: 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .state-go .verdict { color: var(--go); }
+  .state-stop .verdict { color: var(--stop); }
+  .state-wait .verdict { color: var(--ink); }
+
+  .name { font-size: clamp(28px, 8.5vw, 36px); font-weight: 800; font-stretch: 112%; line-height: 1.08; letter-spacing: -0.015em; margin: 0 0 6px; overflow-wrap: anywhere; }
+  .dest { font-size: 20px; font-weight: 700; margin: 0 0 14px; }
+  .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 16px; font-size: 16px; }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .msg { font-size: 18px; margin: 0 0 16px; }
+
+  .call {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    border: 2px solid var(--ink); border-radius: 12px; padding: 12px; margin-bottom: 14px;
+    font-weight: 700; text-decoration: none; color: var(--ink);
+  }
+  label.field { display: block; font-size: 15px; color: var(--muted); margin-bottom: 14px; }
+  label.field input {
+    display: block; width: 100%; margin-top: 6px; padding: 13px 14px; border-radius: 10px;
+    border: 2px solid var(--line); background: var(--bg); font-size: 18px; font-weight: 600; color: var(--ink);
+  }
+  label.field input::placeholder { font-weight: 400; color: var(--muted); opacity: .7; }
+  label.field input:focus { border-color: var(--ink); outline: none; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn {
+    min-height: 58px; border-radius: 12px; border: 0; font-size: 18px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px;
+  }
+  .btn.full { grid-column: 1 / -1; }
+  .btn.admit { background: var(--go); color: var(--go-text); }
+  .btn.deny { background: transparent; color: var(--stop); border: 2px solid var(--stop); }
+  .btn.deny.solid { background: var(--stop); color: #fff; }
+  .btn.plain { background: var(--ink); color: var(--surface); }
+  .btn.ghost { background: transparent; border: 2px solid var(--line); color: var(--ink); font-weight: 700; }
+  .btn:disabled { opacity: .5; }
+
+  .reasons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .reason { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 9px 14px; font-weight: 600; font-size: 15px; }
+  .reason[aria-pressed="true"] { border-color: var(--stop); background: var(--stop-soft); color: var(--stop); }
+
+  /* ---------- Inside list ---------- */
+  .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .row { background: var(--surface); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .row .rname { font-weight: 800; font-size: 18px; }
+  .row .rmeta { color: var(--muted); font-size: 14px; grid-column: 1; }
+  .row .btn { grid-row: 1 / 3; grid-column: 2; min-height: 46px; font-size: 15px; padding: 0 16px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 12px; }
+  h2 { font-size: 22px; font-weight: 800; font-stretch: 110%; margin: 4px 0 14px; }
+
+  /* ---------- Login ---------- */
+  .login { margin: auto 0; }
+  .login h1 { font-size: 34px; font-weight: 800; font-stretch: 118%; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .login p { color: var(--muted); margin: 0 0 22px; }
+  .login .stripe { height: 10px; border-radius: 5px; margin-bottom: 22px; width: 120px; background: repeating-linear-gradient(-45deg, var(--amber) 0 10px, var(--ink) 10px 20px); }
+  .error { color: var(--stop); font-weight: 600; min-height: 1.4em; margin: 0 0 10px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    background: var(--ink); color: var(--surface); padding: 12px 18px; border-radius: 12px; font-weight: 600;
+    max-width: calc(100% - 32px);
+  }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barrier .arm { transition: none; }
+    .slots.shake { animation: none; }
+  }
+  @media (min-width: 700px) { .app { padding-top: 32px; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Login ===== -->
+  <section id="v-login" class="login" hidden>
+    <div class="stripe" aria-hidden="true"></div>
+    <h1>BIVAS Gate</h1>
+    <p>Sign in with your phone number and 6-digit PIN to start your shift.</p>
+    <form id="login-form" novalidate>
+      <label class="field">Phone number
+        <input id="l-phone" type="tel" inputmode="tel" autocomplete="username" placeholder="0803 123 4567" required>
+      </label>
+      <label class="field">PIN
+        <input id="l-pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" placeholder="••••••" required>
+      </label>
+      <p class="error" id="l-error" role="alert"></p>
+      <button class="btn plain full" style="width:100%" id="l-submit" type="submit">Start shift</button>
+    </form>
+  </section>
+
+  <!-- ===== Signed-in header ===== -->
+  <header class="bar" id="bar" hidden>
+    <span class="brand">BIVAS</span>
+    <span class="who" id="who"></span>
+    <button class="chip" id="btn-inside" aria-pressed="false">Inside <b id="inside-count">0</b></button>
+    <button class="chip" id="btn-logout">End shift</button>
+  </header>
+
+  <!-- ===== Keypad ===== -->
+  <section id="v-keypad" hidden style="display:flex;flex-direction:column;flex:1">
+    <p class="prompt" id="kp-label">Enter the visitor's 6-digit gate code</p>
+    <div class="slots" id="slots" role="group" aria-labelledby="kp-label"></div>
+    <div class="keys" id="keys">
+      <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+      <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+      <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+      <button class="key alt" data-k="clear" aria-label="Clear code">Clear</button>
+      <button class="key" data-k="0">0</button>
+      <button class="key alt" data-k="back" aria-label="Delete last digit">⌫</button>
+      <button class="key go" data-k="check" id="btn-check" style="grid-column:1/-1" disabled>Check code</button>
+    </div>
+  </section>
+
+  <!-- ===== Result ===== -->
+  <section id="v-result" hidden>
+    <div class="card" id="card" aria-live="polite"></div>
+  </section>
+
+  <!-- ===== Inside ===== -->
+  <section id="v-inside" hidden>
+    <h2>Visitors inside now</h2>
+    <ul class="list" id="inside-list"></ul>
+  </section>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // The page lives at /gate/, the API at /api/ on the same domain.
+  const API = new URL('../api/', location.href).href;
+  const STORE = 'bivas.gate.session';
+  const TZ = 'Africa/Lagos';
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  let session = loadSession();
+  let code = '';
+  let current = null;       // visit returned by verify
+  let busy = false;
+  let returnTimer = null;
+
+  // ---------- Session ----------
+  function loadSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+      return s && new Date(s.expires_at) > new Date() ? s : null;
+    } catch { return null; }
+  }
+  function saveSession(s) { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch {} }
+  function clearSession() { try { localStorage.removeItem(STORE); } catch {} session = null; }
+
+  // ---------- API ----------
+  async function api(path, body) {
+    const opts = { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' } };
+    if (session) opts.headers.Authorization = 'Bearer ' + session.token;
+    if (body) opts.body = JSON.stringify(body);
+    let res;
+    try { res = await fetch(API + path, opts); }
+    catch { return { ok: false, status: 0, data: { error: 'No connection. Check the network and try again.' } }; }
+    let data;
+    try { data = await res.json(); } catch { data = { error: 'The server sent an unexpected reply.' }; }
+    if (res.status === 401 && path !== 'auth/login.php') {
+      clearSession();
+      show('login');
+      $('l-error').textContent = 'Your shift session ended. Sign in again.';
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  // ---------- Formatting ----------
+  const fmtTime = (iso) => new Intl.DateTimeFormat('en-NG', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  const fmtWhen = (iso) => {
+    const d = new Date(iso);
+    const day = (x) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(x);
+    const same = day(d) === day(new Date());
+    return same ? 'today, ' + fmtTime(iso)
+      : new Intl.DateTimeFormat('en-NG', { timeZone: TZ, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(d);
+  };
+
+  // ---------- Views ----------
+  function show(view) {
+    for (const v of ['login', 'keypad', 'result', 'inside']) $('v-' + v).hidden = v !== view;
+    $('bar').hidden = view === 'login';
+    $('btn-inside').setAttribute('aria-pressed', String(view === 'inside'));
+    if (view === 'keypad') $('v-keypad').style.display = 'flex';
+    if (view === 'login') setTimeout(() => $('l-phone').focus(), 0);
+  }
+
+  function toast(text) {
+    const t = $('toast');
+    t.textContent = text; t.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => (t.hidden = true), 2600);
+  }
+
+  // ---------- Login ----------
+  $('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const phone = $('l-phone').value.trim();
+    const pin = $('l-pin').value.trim();
+    $('l-error').textContent = '';
+    if (!phone) return ($('l-error').textContent = 'Enter your phone number.');
+    if (!/^\d{6}$/.test(pin)) return ($('l-error').textContent = 'Your PIN is 6 digits.');
+    $('l-submit').disabled = true;
+    const r = await api('auth/login.php', { as: 'staff', phone, pin });
+    $('l-submit').disabled = false;
+    if (!r.ok) {
+      $('l-error').textContent = r.status === 401 ? 'Wrong phone number or PIN.' : (r.data.error || 'Sign-in failed. Try again.');
+      $('l-pin').value = '';
+      return;
+    }
+    session = { token: r.data.token, name: r.data.name, expires_at: r.data.expires_at };
+    saveSession(session);
+    $('l-pin').value = '';
+    startShift();
+  });
+
+  $('btn-logout').addEventListener('click', async () => {
+    if (!confirm('End your shift on this device?')) return;
+    await api('auth/logout.php', {});
+    clearSession();
+    show('login');
+  });
+
+  function startShift() {
+    $('who').textContent = session.name.split(' ')[0];
+    resetKeypad();
+    show('keypad');
+    refreshInsideCount();
+  }
+
+  // ---------- Keypad ----------
+  const slots = $('slots');
+  for (let i = 0; i < 6; i++) slots.appendChild(Object.assign(document.createElement('span'), { className: 'slot' }));
+
+  function renderSlots() {
+    [...slots.children].forEach((s, i) => {
+      s.textContent = code[i] ?? '';
+      s.classList.toggle('filled', i < code.length);
+      s.classList.toggle('next', i === code.length);
+    });
+    slots.setAttribute('aria-label', code.length ? 'Code so far: ' + code.split('').join(' ') : 'No digits entered');
+    $('btn-check').disabled = code.length !== 6 || busy;
+  }
+  function resetKeypad() { code = ''; current = null; renderSlots(); }
+
+  function press(k) {
+    if (busy || $('v-keypad').hidden) return;
+    if (/^\d$/.test(k) && code.length < 6) {
+      code += k;
+      renderSlots();
+      if (code.length === 6) verify();   // speed matters at the gate
+    } else if (k === 'back') { code = code.slice(0, -1); renderSlots(); }
+    else if (k === 'clear') { code = ''; renderSlots(); }
+    else if (k === 'check' && code.length === 6) verify();
+  }
+  $('keys').addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) press(b.dataset.k); });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input')) return;
+    if (!$('v-keypad').hidden) {
+      if (/^\d$/.test(e.key)) press(e.key);
+      else if (e.key === 'Backspace') press('back');
+      else if (e.key === 'Enter') press('check');
+      else if (e.key === 'Escape') press('clear');
+    } else if (e.key === 'Escape' && !$('v-result').hidden && !busy) backToKeypad();
+  });
+
+  // ---------- Verify ----------
+  async function verify() {
+    busy = true; renderSlots();
+    $('btn-check').textContent = 'Checking…';
+    const r = await api('gate/verify.php', { code });
+    busy = false;
+    $('btn-check').textContent = 'Check code';
+    if (r.status === 401) return;
+    if (r.ok) { current = r.data.visit; renderVisitor(); return; }
+
+    if (r.status === 404 || r.status === 422) {
+      renderStop('Code not recognised', 'Do not let this visitor in. Ask them to call their host for a new code.');
+    } else if (r.status === 410) {
+      renderStop('Code expired', 'This invite has run out. The host needs to send a new code.');
+    } else if (r.status === 409) {
+      renderWait('Too early', 'This code only works from ' + fmtWhen(r.data.valid_from) + '. Ask the visitor to wait or call their host.');
+    } else if (r.status === 429) {
+      renderStop('Keypad locked', r.data.error);
+    } else {
+      renderStop('Could not check the code', r.data.error || 'Try again.');
+    }
+  }
+
+  function barrier(state, verdict) {
+    const icon = state === 'go' ? '✓' : state === 'stop' ? '✕' : '●';
+    return `<div class="barrier" aria-hidden="true"><span class="post"></span><span class="arm"></span>
+      <span class="verdict">${icon} ${esc(verdict)}</span></div>`;
+  }
+
+  function renderStop(title, message) {
+    const card = $('card');
+    card.className = 'card state-stop';
+    card.innerHTML = barrier('stop', 'Do not admit') + `
+      <p class="name">${esc(title)}</p>
+      <p class="msg">${esc(message)}</p>
+      <div class="actions"><button class="btn plain full" data-act="back">Try another code</button></div>`;
+    show('result');
+    card.querySelector('[data-act=back]').focus();
+  }
+
+  function renderWait(title, message) {
+    const card = $('card');
+    card.className = 'card state-wait';
+    card.innerHTML = barrier('wait', 'Not yet') + `
+      <p class="name">${esc(title)}</p>
+      <p class="msg">${esc(message)}</p>
+      <div class="actions"><button class="btn plain full" data-act="back">Back to keypad</button></div>`;
+    show('result');
+    card.querySelector('[data-act=back]').focus();
+  }
+
+  function renderVisitor() {
+    const v = current;
+    const card = $('card');
+    card.className = 'card state-wait';
+    card.innerHTML = barrier('wait', 'Code valid') + `
+      <p class="name">${esc(v.visitor_name)}</p>
+      <p class="dest">${esc(v.destination)}</p>
+      <dl class="facts">
+        <dt>Host</dt><dd>${esc(v.host_name)}</dd>
+        ${v.purpose ? `<dt>Purpose</dt><dd>${esc(v.purpose)}</dd>` : ''}
+        <dt>Phone</dt><dd>${esc(v.visitor_phone)}</dd>
+        <dt>Valid until</dt><dd>${esc(fmtWhen(v.valid_to))}</dd>
+      </dl>
+      <a class="call" href="tel:${esc(v.host_phone)}">Call host to confirm</a>
+      <label class="field">Vehicle plate (optional)
+        <input id="plate" autocapitalize="characters" autocomplete="off" placeholder="LND 123 AB" maxlength="20">
+      </label>
+      <div class="actions">
+        <button class="btn admit" data-act="admit">✓ Let in</button>
+        <button class="btn deny" data-act="deny">✕ Turn away</button>
+        <button class="btn ghost full" data-act="back">Cancel</button>
+      </div>`;
+    show('result');
+    card.querySelector('[data-act=admit]').focus();
+  }
+
+  const REASONS = ['Host did not confirm', 'ID did not match', 'Visitor refused search', 'Extra people not on invite'];
+
+  function renderDenyForm() {
+    const v = current;
+    const card = $('card');
+    card.className = 'card state-stop';
+    card.innerHTML = barrier('stop', 'Turning away') + `
+      <p class="name">${esc(v.visitor_name)}</p>
+      <p class="msg">Why are you turning this visitor away?</p>
+      <div class="reasons">${REASONS.map((r) => `<button class="reason" aria-pressed="false">${esc(r)}</button>`).join('')}</div>
+      <label class="field">Other reason or extra detail
+        <input id="deny-note" maxlength="300" autocomplete="off">
+      </label>
+      <div class="actions">
+        <button class="btn deny solid" data-act="confirm-deny" disabled>✕ Turn away</button>
+        <button class="btn ghost" data-act="visitor">Go back</button>
+      </div>`;
+    const confirmBtn = card.querySelector('[data-act=confirm-deny]');
+    const note = card.querySelector('#deny-note');
+    const update = () => { confirmBtn.disabled = !denyReason(); };
+    card.querySelectorAll('.reason').forEach((b) => b.addEventListener('click', () => {
+      b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+      update();
+    }));
+    note.addEventListener('input', update);
+  }
+  function denyReason() {
+    const picked = [...$('card').querySelectorAll('.reason[aria-pressed=true]')].map((b) => b.textContent);
+    const extra = ($('deny-note')?.value || '').trim();
+    return [...picked, extra].filter(Boolean).join('; ');
+  }
+
+  async function checkIn(decision) {
+    if (busy) return;
+    const body = { visit_id: current.visit_id, decision, entry_method: 'OTP' };
+    if (decision === 'allowed') {
+      const plate = ($('plate')?.value || '').trim();
+      if (plate) body.vehicle_plate = plate;
+    } else {
+      body.notes = denyReason();
+    }
+    busy = true;
+    $('card').querySelectorAll('button').forEach((b) => (b.disabled = true));
+    const r = await api('gate/check-in.php', body);
+    busy = false;
+    if (r.status === 401) return;
+    if (!r.ok) { renderStop('Not logged', r.data.error || 'Could not save this entry. Try again.'); return; }
+
+    const card = $('card');
+    const name = current.visitor_name;
+    if (decision === 'allowed') {
+      card.className = 'card state-wait';
+      card.innerHTML = barrier('wait', 'Opening') + `
+        <p class="name">${esc(name)}</p>
+        <p class="msg">Let in and logged. Entry #${esc(r.data.entry_id)}.</p>
+        <div class="actions"><button class="btn plain full" data-act="back">Next visitor</button></div>`;
+      // Lift the barrier on the next frame so the transition plays.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        card.className = 'card state-go';
+        card.querySelector('.verdict').innerHTML = '✓ Let in';
+      }));
+    } else {
+      card.className = 'card state-stop';
+      card.innerHTML = barrier('stop', 'Turned away') + `
+        <p class="name">${esc(name)}</p>
+        <p class="msg">Turned away and logged. The host's invite is still active.</p>
+        <div class="actions"><button class="btn plain full" data-act="back">Next visitor</button></div>`;
+    }
+    card.querySelector('[data-act=back]').focus();
+    refreshInsideCount();
+    clearTimeout(returnTimer);
+    returnTimer = setTimeout(() => { if (!$('v-result').hidden) backToKeypad(); }, 8000);
+  }
+
+  function backToKeypad() {
+    clearTimeout(returnTimer);
+    resetKeypad();
+    show('keypad');
+  }
+
+  $('card').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.disabled) return;
+    const act = b.dataset.act;
+    if (act === 'back') backToKeypad();
+    else if (act === 'admit') checkIn('allowed');
+    else if (act === 'deny') renderDenyForm();
+    else if (act === 'confirm-deny') checkIn('denied');
+    else if (act === 'visitor') renderVisitor();
+  });
+
+  // ---------- Inside ----------
+  async function refreshInsideCount() {
+    const r = await api('gate/inside.php');
+    if (r.ok) $('inside-count').textContent = r.data.count;
+    return r;
+  }
+
+  $('btn-inside').addEventListener('click', async () => {
+    if (!$('v-inside').hidden) return backToKeypad();
+    show('inside');
+    $('inside-list').innerHTML = '<li class="empty">Loading…</li>';
+    const r = await refreshInsideCount();
+    if (!r.ok) { $('inside-list').innerHTML = `<li class="empty">${esc(r.data.error)}</li>`; return; }
+    renderInside(r.data.inside);
+  });
+
+  function renderInside(rows) {
+    const list = $('inside-list');
+    if (!rows.length) { list.innerHTML = '<li class="empty">Nobody is inside right now.</li>'; return; }
+    list.innerHTML = rows.map((r) => `
+      <li class="row">
+        <span class="rname">${esc(r.visitor_name)}</span>
+        <span class="rmeta">${esc(r.destination)}, in since ${esc(fmtWhen(r.check_in_time))}${r.vehicle_plate ? ', ' + esc(r.vehicle_plate) : ''}</span>
+        <button class="btn plain" data-out="${esc(r.entry_id)}">Check out</button>
+      </li>`).join('');
+  }
+
+  $('inside-list').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-out]');
+    if (!b) return;
+    b.disabled = true;
+    const row = b.closest('.row');
+    const name = row.querySelector('.rname').textContent;
+    const r = await api('gate/check-out.php', { entry_id: Number(b.dataset.out) });
+    if (r.status === 401) return;
+    if (!r.ok) { b.disabled = false; toast(r.data.error || 'Could not check out.'); return; }
+    row.remove();
+    toast(name + ' checked out');
+    const left = $('inside-list').children.length;
+    $('inside-count').textContent = left;
+    if (!left) renderInside([]);
+  });
+
+  // ---------- Boot ----------
+  if (session) startShift(); else show('login');
+})();
+</script>
+</body>
+</html>

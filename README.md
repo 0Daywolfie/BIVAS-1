@@ -4,6 +4,12 @@ Visitor and access control for gated estates. Residents invite guests and get a 
 
 **Stack:** PHP 8.1+ · MySQL 8 / MariaDB 10.5+ · runs on standard cPanel shared hosting (no Node, no Composer required)
 
+## Guard gate screen
+
+`gate/index.html` is a phone-friendly screen for security at the gate: big keypad, auto-check on the 6th digit, visitor card with a one-tap call to the host, Let in / Turn away (with logged reasons), and a live list of who's inside with check-out. Works with a physical keyboard, supports dark mode for night shifts, and keeps the guard signed in for their shift.
+
+Open `https://yourdomain/gate/` on the guard's phone and use **Add to Home screen**.
+
 ## How it works
 
 1. **Resident** logs in and creates an invite → gets a 6-digit code to share with the visitor
@@ -49,13 +55,13 @@ php tools/set-credential.php staff    08032222222 123456
 php -S 127.0.0.1:8080                                    # local dev
 ```
 
-**Deploying to cPanel:** upload `api/` into `public_html/`, keep `tools/` and `database/` **outside** `public_html`, and add a cron job every 15 minutes: `php /home/USER/bivas/tools/expire-visits.php`.
+**Deploying to cPanel:** upload `api/` and `gate/` into `public_html/`, keep `tools/` and `database/` **outside** `public_html`, and add a cron job every 15 minutes: `php /home/USER/bivas/tools/expire-visits.php`.
 
 ## Roadmap
 
 - [x] Schema + ER diagram
 - [x] Auth, invites, gate verify / check-in / check-out (tested end to end)
-- [ ] Guard gate screen (mobile web)
+- [x] Guard gate screen (mobile web)
 - [ ] Resident invite screen + WhatsApp share
 - [ ] Admin dashboard (`bivas-1-admin-dashboard`): estates, units, residents, staff, entry logs
 - [ ] Walk-in visitors, QR codes, recurring invites (cleaners, drivers)
