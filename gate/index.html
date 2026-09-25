@@ -294,13 +294,13 @@
   }
 
   // ---------- Formatting ----------
-  const fmtTime = (iso) => new Intl.DateTimeFormat('en-NG', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  const fmtTime = (iso) => new Intl.DateTimeFormat('en-NG', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso));
   const fmtWhen = (iso) => {
     const d = new Date(iso);
     const day = (x) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(x);
     const same = day(d) === day(new Date());
     return same ? 'today, ' + fmtTime(iso)
-      : new Intl.DateTimeFormat('en-NG', { timeZone: TZ, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(d);
+      : new Intl.DateTimeFormat('en-NG', { timeZone: TZ, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(d);
   };
 
   // ---------- Views ----------
