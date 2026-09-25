@@ -69,7 +69,7 @@ json_out([
         'visitor_name' => $visit['visitor_name'],
         'visitor_phone' => $visit['visitor_phone'],
         'purpose' => $visit['purpose'],
-        'destination' => trim(($visit['block'] ? "Block {$visit['block']}, " : '') . "Unit {$visit['unit_code']}"),
+        'destination' => unit_label($visit['block'], $visit['unit_code']),
         'host_name' => $visit['host_name'],
         'host_phone' => $visit['host_phone'],
         'valid_to' => iso($visit['valid_to']),

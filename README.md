@@ -4,6 +4,12 @@ Visitor and access control for gated estates. Residents invite guests and get a 
 
 **Stack:** PHP 8.1+ · MySQL 8 / MariaDB 10.5+ · runs on standard cPanel shared hosting (no Node, no Composer required)
 
+## Resident invite screen
+
+`resident/index.html` is where residents invite guests: enter the visitor's name and phone, pick how long the code works (4 hours, 1 day, 3 days, or a custom window), and get a 6-digit code with a **Send on WhatsApp** button. The message tells the visitor which estate, which unit, who invited them and until when the code works. Residents see every invite's status (Active, Arrived, Expired, Cancelled) and can cancel one to kill its code instantly. The code is shown once and never stored in plain text, so the screen asks for confirmation before leaving without sending it.
+
+Open `https://yourdomain/resident/` on the resident's phone and use **Add to Home screen**.
+
 ## Guard gate screen
 
 `gate/index.html` is a phone-friendly screen for security at the gate: big keypad, auto-check on the 6th digit, visitor card with a one-tap call to the host, Let in / Turn away (with logged reasons), and a live list of who's inside with check-out. Works with a physical keyboard, supports dark mode for night shifts, and keeps the guard signed in for their shift.
@@ -33,6 +39,7 @@ Open `https://yourdomain/gate/` on the guard's phone and use **Add to Home scree
 |---|---|---|
 | `POST auth/login.php` | anyone | `{as, phone, password \| pin}` → bearer token |
 | `POST auth/logout.php` | any | Revoke current token |
+| `GET auth/me.php` | any | Who is signed in: name, estate, unit or role |
 | `POST visits/create.php` | resident | Create invite, returns code once |
 | `GET visits/mine.php` | resident | Recent invites |
 | `POST visits/cancel.php` | resident | Cancel invite, kills code |

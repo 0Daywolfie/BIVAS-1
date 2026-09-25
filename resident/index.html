@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13233A">
+<title>BIVAS · Invite a visitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E6E9ED;        /* concrete */
+    --surface: #FFFFFF;
+    --ink: #13233A;       /* uniform navy */
+    --muted: #5A6778;
+    --line: #C9CFD6;
+    --amber: #F2A900;     /* barrier amber */
+    --amber-edge: #B67F00;
+    --go: #0A7A3F;
+    --go-soft: #DDF1E5;
+    --go-text: #FFFFFF;
+    --stop: #C21F32;
+    --wait-soft: #FFF1CC;
+    --font: "Archivo", "Arial Narrow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1520; --surface: #172233; --ink: #EEF2F7; --muted: #9AA7B8; --line: #2A3950;
+      --go: #2FBF71; --go-soft: #0F3322; --go-text: #04150B; --stop: #FF5C6E; --wait-soft: #3A2E08;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  .app { max-width: 460px; margin: 0 auto; min-height: 100%; padding: 12px 16px 28px; }
+
+  .bar { display: flex; align-items: center; gap: 10px; padding: 4px 0 18px; }
+  .brand { font-weight: 800; font-stretch: 115%; font-size: 18px; }
+  .who { flex: 1; min-width: 0; font-size: 14px; color: var(--muted); line-height: 1.25; }
+  .who b, .who span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .who b { color: var(--ink); font-size: 15px; }
+  .chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 13px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+  h1 { font-size: 30px; font-weight: 800; font-stretch: 116%; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 6px; }
+  h2 { font-size: 20px; font-weight: 800; font-stretch: 110%; margin: 28px 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+
+  .btn { min-height: 56px; width: 100%; border-radius: 12px; border: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 16px; text-decoration: none; }
+  .btn.primary { background: var(--amber); color: #13233A; box-shadow: 0 3px 0 var(--amber-edge); }
+  .btn.primary:active { transform: translateY(3px); box-shadow: none; }
+  .btn.dark { background: var(--ink); color: var(--surface); }
+  .btn.whatsapp { background: var(--go); color: var(--go-text); }
+  .btn.ghost { background: transparent; border: 2px solid var(--line); color: var(--ink); font-weight: 700; }
+  .btn.small { min-height: 42px; width: auto; font-size: 15px; font-weight: 700; padding: 0 14px; }
+  .btn:disabled { opacity: .5; }
+  .stack { display: grid; gap: 10px; }
+
+  label.field { display: block; font-size: 15px; color: var(--muted); margin-bottom: 14px; }
+  label.field input { display: block; width: 100%; margin-top: 6px; padding: 13px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); font-size: 18px; font-weight: 600; color: var(--ink); }
+  label.field input::placeholder { font-weight: 400; color: var(--muted); opacity: .7; }
+  label.field input:focus { border-color: var(--ink); outline: none; }
+  .hint { font-size: 14px; color: var(--muted); margin-top: 4px; display: block; }
+  .error { color: var(--stop); font-weight: 600; min-height: 1.4em; margin: 0 0 10px; }
+
+  fieldset { border: 0; padding: 0; margin: 0 0 14px; }
+  legend { font-size: 15px; color: var(--muted); margin-bottom: 8px; padding: 0; }
+  .choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .choice { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 11px 4px; font-weight: 700; font-size: 15px; }
+  .choice[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--surface); }
+  .custom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .custom label.field { margin: 0; font-size: 14px; }
+  .custom input { font-size: 15px !important; padding: 11px 8px !important; }
+
+  /* The code card: the same six slots the guard types into at the gate */
+  .codecard { background: var(--surface); border-radius: 16px; padding: 18px 18px 20px; margin-bottom: 16px; overflow: hidden; position: relative; }
+  .codecard::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 10px; background: repeating-linear-gradient(-45deg, var(--amber) 0 12px, #13233A 12px 24px); }
+  .codecard .for { margin: 10px 0 2px; color: var(--muted); font-size: 15px; }
+  .codecard .vname { font-size: 26px; font-weight: 800; font-stretch: 112%; line-height: 1.1; margin: 0 0 16px; overflow-wrap: anywhere; }
+  .slots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 14px; }
+  .slot { aspect-ratio: 3 / 4; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 10px; font-size: clamp(30px, 10vw, 44px); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .codecard .when { font-weight: 600; margin: 0; }
+  .note { background: var(--wait-soft); border-radius: 12px; padding: 12px 14px; font-size: 15px; margin: 0 0 16px; }
+
+  .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .row { background: var(--surface); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; }
+  .row .rname { font-weight: 800; font-size: 18px; overflow-wrap: anywhere; }
+  .row .rmeta { color: var(--muted); font-size: 14px; grid-column: 1 / -1; }
+  .status { font-size: 13px; font-weight: 700; border-radius: 999px; padding: 4px 10px; white-space: nowrap; justify-self: end; }
+  .status.active { background: var(--wait-soft); color: var(--ink); }
+  .status.used { background: var(--go-soft); color: var(--go); }
+  .status.ended { color: var(--muted); border: 1.5px solid var(--line); }
+  .row .btn { grid-column: 1 / -1; margin-top: 10px; justify-self: start; }
+  .empty { text-align: center; color: var(--muted); padding: 28px 12px; background: var(--surface); border-radius: 12px; }
+
+  .login { padding-top: 12vh; }
+  .login .stripe { height: 10px; border-radius: 5px; margin-bottom: 22px; width: 120px; background: repeating-linear-gradient(-45deg, var(--amber) 0 10px, #13233A 10px 20px); }
+
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 12px 18px; border-radius: 12px; font-weight: 600; max-width: calc(100% - 32px); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="v-login" class="login" hidden>
+    <div class="stripe" aria-hidden="true"></div>
+    <h1>Invite visitors</h1>
+    <p class="lead">Sign in to send your guests a gate code. Security checks it when they arrive.</p>
+    <form id="login-form" novalidate>
+      <label class="field">Phone number
+        <input id="l-phone" type="tel" inputmode="tel" autocomplete="username" placeholder="0803 123 4567">
+      </label>
+      <label class="field">Password
+        <input id="l-pass" type="password" autocomplete="current-password">
+      </label>
+      <p class="error" id="l-error" role="alert"></p>
+      <button class="btn dark" id="l-submit" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <header class="bar" id="bar" hidden>
+    <span class="brand">BIVAS</span>
+    <span class="who"><b id="who-name"></b><span id="who-place"></span></span>
+    <button class="chip" id="btn-logout">Sign out</button>
+  </header>
+
+  <section id="v-home" hidden>
+    <button class="btn primary" id="btn-new">Invite a visitor</button>
+    <h2>Your invites</h2>
+    <ul class="list" id="invites"></ul>
+  </section>
+
+  <section id="v-new" hidden>
+    <h1>Invite a visitor</h1>
+    <p class="lead">They'll get a 6-digit code to show security at the gate.</p>
+    <form id="invite-form" novalidate>
+      <label class="field">Visitor's name
+        <input id="i-name" autocomplete="off" maxlength="150" placeholder="Tunde Bakare">
+      </label>
+      <label class="field">Visitor's phone number
+        <input id="i-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="0701 234 5678">
+        <span class="hint">WhatsApp opens to this number so you can send the code.</span>
+      </label>
+      <label class="field">Reason for visit (optional)
+        <input id="i-purpose" autocomplete="off" maxlength="200" placeholder="Plumber, family, delivery">
+      </label>
+      <fieldset>
+        <legend>How long should the code work?</legend>
+        <div class="choices" id="durations">
+          <button type="button" class="choice" data-h="4" aria-pressed="false">4 hrs</button>
+          <button type="button" class="choice" data-h="24" aria-pressed="true">1 day</button>
+          <button type="button" class="choice" data-h="72" aria-pressed="false">3 days</button>
+          <button type="button" class="choice" data-h="custom" aria-pressed="false">Set time</button>
+        </div>
+        <div class="custom" id="custom" hidden>
+          <label class="field">Starts<input id="i-from" type="datetime-local"></label>
+          <label class="field">Ends<input id="i-to" type="datetime-local"></label>
+        </div>
+      </fieldset>
+      <p class="error" id="i-error" role="alert"></p>
+      <div class="stack">
+        <button class="btn primary" id="i-submit" type="submit">Create gate code</button>
+        <button class="btn ghost" id="i-cancel" type="button">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="v-code" hidden>
+    <div class="codecard" aria-live="polite">
+      <p class="for">Gate code for</p>
+      <p class="vname" id="c-name"></p>
+      <div class="slots" id="c-slots" role="img"></div>
+      <p class="when" id="c-when"></p>
+    </div>
+    <p class="note">Send it now. For security, this code can't be shown again. If it gets lost, cancel the invite and create a new one.</p>
+    <div class="stack">
+      <a class="btn whatsapp" id="c-wa" target="_blank" rel="noopener">Send on WhatsApp</a>
+      <button class="btn ghost" id="c-share" hidden>Share another way</button>
+      <button class="btn ghost" id="c-copy">Copy message</button>
+      <button class="btn dark" id="c-done">Done</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const API = new URL('../api/', location.href).href;
+  const STORE = 'bivas.resident.session';
+  const TZ = 'Africa/Lagos';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  let session = loadSession();
+  let created = null;   // the invite just created; the code lives in memory only
+  let shared = false;
+
+  function loadSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+      return s && new Date(s.expires_at) > new Date() ? s : null;
+    } catch { return null; }
+  }
+  function saveSession() { try { localStorage.setItem(STORE, JSON.stringify(session)); } catch {} }
+  function clearSession() { try { localStorage.removeItem(STORE); } catch {} session = null; }
+
+  async function api(path, body) {
+    const opts = { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' } };
+    if (session) opts.headers.Authorization = 'Bearer ' + session.token;
+    if (body) opts.body = JSON.stringify(body);
+    let res;
+    try { res = await fetch(API + path, opts); }
+    catch { return { ok: false, status: 0, data: { error: 'No connection. Check your internet and try again.' } }; }
+    let data;
+    try { data = await res.json(); } catch { data = { error: 'The server sent an unexpected reply.' }; }
+    if (res.status === 401 && path !== 'auth/login.php') {
+      clearSession(); show('login');
+      $('l-error').textContent = 'You were signed out. Sign in again.';
+    }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  const fmt = (iso) => {
+    const d = new Date(iso);
+    const day = (x) => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(x);
+    const time = new Intl.DateTimeFormat('en-NG', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(d).replace(/\s*([ap])\.?m\.?$/i, (_, x) => ' ' + x.toLowerCase() + 'm');
+    if (day(d) === day(new Date())) return 'today, ' + time;
+    if (day(d) === day(new Date(Date.now() + 864e5))) return 'tomorrow, ' + time;
+    return new Intl.DateTimeFormat('en-NG', { timeZone: TZ, day: 'numeric', month: 'short' }).format(d) + ', ' + time;
+  };
+
+  function show(view) {
+    for (const v of ['login', 'home', 'new', 'code']) $('v-' + v).hidden = v !== view;
+    $('bar').hidden = view === 'login';
+    window.scrollTo(0, 0);
+  }
+  function toast(text) {
+    const t = $('toast'); t.textContent = text; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2600);
+  }
+
+  // Sign in
+  $('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const phone = $('l-phone').value.trim(), password = $('l-pass').value;
+    $('l-error').textContent = '';
+    if (!phone || !password) return ($('l-error').textContent = 'Enter your phone number and password.');
+    $('l-submit').disabled = true;
+    const r = await api('auth/login.php', { as: 'resident', phone, password });
+    $('l-submit').disabled = false;
+    if (!r.ok) {
+      $('l-error').textContent = r.status === 401 ? 'Wrong phone number or password.' : (r.data.error || 'Sign-in failed. Try again.');
+      return;
+    }
+    session = { token: r.data.token, expires_at: r.data.expires_at };
+    saveSession();
+    $('l-pass').value = '';
+    start();
+  });
+
+  $('btn-logout').addEventListener('click', async () => {
+    if (!confirm('Sign out on this phone?')) return;
+    await api('auth/logout.php', {});
+    clearSession(); show('login');
+  });
+
+  async function start() {
+    const me = await api('auth/me.php');
+    if (!me.ok) return;
+    if (me.data.user_type !== 'resident') {
+      clearSession(); show('login');
+      $('l-error').textContent = 'This page is for residents. Guards use the gate screen.';
+      return;
+    }
+    $('who-name').textContent = me.data.name;
+    $('who-place').textContent = me.data.unit + ', ' + me.data.estate_name;
+    goHome();
+  }
+
+  // Home: invite list
+  const STATUS = {
+    approved: ['Active', 'active'], pending: ['Pending', 'active'],
+    used: ['Arrived', 'used'], expired: ['Expired', 'ended'], cancelled: ['Cancelled', 'ended'],
+  };
+
+  async function goHome() {
+    show('home');
+    const list = $('invites');
+    list.innerHTML = '<li class="empty">Loading…</li>';
+    const r = await api('visits/mine.php');
+    if (!r.ok) { list.innerHTML = `<li class="empty">${esc(r.data.error)}</li>`; return; }
+    if (!r.data.visits.length) {
+      list.innerHTML = "<li class=\"empty\">No invites yet. Invite someone and they'll get a code to show at the gate.</li>";
+      return;
+    }
+    list.innerHTML = r.data.visits.map((v) => {
+      const [label, cls] = STATUS[v.status] || [v.status, 'ended'];
+      const live = v.status === 'approved' || v.status === 'pending';
+      const when = live ? 'Code works until ' + fmt(v.valid_to)
+        : v.status === 'used' ? 'Code used at the gate'
+        : 'Was valid until ' + fmt(v.valid_to);
+      return `<li class="row">
+        <span class="rname">${esc(v.visitor_name)}</span>
+        <span class="status ${cls}">${esc(label)}</span>
+        <span class="rmeta">${esc(when)}${v.purpose ? ', ' + esc(v.purpose) : ''}</span>
+        ${live ? `<button class="btn ghost small" data-cancel="${esc(v.visit_id)}" data-name="${esc(v.visitor_name)}">Cancel invite</button>` : ''}
+      </li>`;
+    }).join('');
+  }
+
+  $('invites').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-cancel]');
+    if (!b) return;
+    if (!confirm(`Cancel ${b.dataset.name}'s invite? Their code will stop working at the gate.`)) return;
+    b.disabled = true;
+    const r = await api('visits/cancel.php', { visit_id: Number(b.dataset.cancel) });
+    if (r.status === 401) return;
+    if (!r.ok) { b.disabled = false; toast(r.data.error || 'Could not cancel. Try again.'); return; }
+    toast('Invite cancelled. The code no longer works.');
+    goHome();
+  });
+
+  // New invite
+  let hours = 24;
+  $('btn-new').addEventListener('click', () => {
+    $('invite-form').reset();
+    $('i-error').textContent = '';
+    setDuration('24');
+    show('new');
+    $('i-name').focus();
+  });
+  $('i-cancel').addEventListener('click', goHome);
+
+  function setDuration(h) {
+    document.querySelectorAll('#durations .choice').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.h === h)));
+    hours = h === 'custom' ? null : Number(h);
+    $('custom').hidden = h !== 'custom';
+    if (h === 'custom' && !$('i-from').value) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const local = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const begin = new Date(Date.now() + 36e5); begin.setMinutes(0, 0, 0);
+      $('i-from').value = local(begin);
+      $('i-to').value = local(new Date(begin.getTime() + 4 * 36e5));
+    }
+  }
+  $('durations').addEventListener('click', (e) => { const c = e.target.closest('[data-h]'); if (c) setDuration(c.dataset.h); });
+
+  $('invite-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = $('i-error'); err.textContent = '';
+    const body = {
+      visitor_name: $('i-name').value.trim(),
+      visitor_phone: $('i-phone').value.trim(),
+      purpose: $('i-purpose').value.trim(),
+    };
+    if (!body.visitor_name) return (err.textContent = "Enter your visitor's name.");
+    if (!body.visitor_phone) return (err.textContent = "Enter your visitor's phone number.");
+    const now = new Date();
+    if (hours) {
+      body.valid_from = now.toISOString();
+      body.valid_to = new Date(now.getTime() + hours * 36e5).toISOString();
+    } else {
+      const from = new Date($('i-from').value), to = new Date($('i-to').value);
+      if (isNaN(from) || isNaN(to)) return (err.textContent = 'Choose when the code starts and ends.');
+      if (to <= from) return (err.textContent = 'The end time must be after the start time.');
+      body.valid_from = from.toISOString();
+      body.valid_to = to.toISOString();
+    }
+    $('i-submit').disabled = true;
+    $('i-submit').textContent = 'Creating…';
+    const r = await api('visits/create.php', body);
+    $('i-submit').disabled = false;
+    $('i-submit').textContent = 'Create gate code';
+    if (r.status === 401) return;
+    if (!r.ok) { err.textContent = r.data.error || 'Could not create the invite. Try again.'; return; }
+    showCode(r.data);
+  });
+
+  // Code created
+  function showCode(inv) {
+    created = inv; shared = false;
+    $('c-name').textContent = inv.visitor_name;
+    $('c-slots').innerHTML = inv.access_code.split('').map((d) => `<span class="slot">${esc(d)}</span>`).join('');
+    $('c-slots').setAttribute('aria-label', 'Gate code ' + inv.access_code.split('').join(' '));
+    const future = new Date(inv.valid_from) > new Date(Date.now() + 6e4);
+    $('c-when').textContent = future
+      ? `Works once, from ${fmt(inv.valid_from)} until ${fmt(inv.valid_to)}`
+      : `Works once, until ${fmt(inv.valid_to)}`;
+    $('c-wa').href = 'https://wa.me/' + inv.visitor_phone.replace(/\D/g, '') + '?text=' + encodeURIComponent(inv.share_message);
+    $('c-share').hidden = !navigator.share;
+    show('code');
+  }
+
+  $('c-wa').addEventListener('click', () => { shared = true; });
+  $('c-share').addEventListener('click', async () => {
+    try { await navigator.share({ text: created.share_message }); shared = true; } catch {}
+  });
+  $('c-copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(created.share_message); }
+    catch {
+      const t = Object.assign(document.createElement('textarea'), { value: created.share_message });
+      document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+    }
+    shared = true;
+    toast('Message copied. Paste it to your visitor.');
+  });
+  $('c-done').addEventListener('click', () => {
+    if (!shared && !confirm("You haven't sent the code yet, and it can't be shown again. Leave anyway?")) return;
+    created = null;
+    goHome();
+  });
+
+  if (session) start(); else show('login');
+})();
+</script>
+</body>
+</html>

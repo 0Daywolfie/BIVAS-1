@@ -23,7 +23,7 @@ $inside = array_map(fn($r) => [
     'check_in_time' => iso($r['check_in_time']),
     'vehicle_plate' => $r['vehicle_plate'],
     'destination' => $r['unit_code'] === null ? 'Walk-in'
-        : trim(($r['block'] ? "Block {$r['block']}, " : '') . "Unit {$r['unit_code']}"),
+        : unit_label($r['block'], $r['unit_code']),
 ], $stmt->fetchAll());
 
 json_out(['success' => true, 'count' => count($inside), 'inside' => $inside]);

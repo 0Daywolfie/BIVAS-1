@@ -85,3 +85,15 @@ function iso(?string $sqlDatetime): ?string {
     return $sqlDatetime === null ? null
         : (new DateTimeImmutable($sqlDatetime, new DateTimeZone('UTC')))->format(DATE_ATOM);
 }
+
+/** "Unit B12", or "Block C, Unit 4" when the block isn't already part of the unit code. */
+function unit_label(?string $block, string $unitCode): string {
+    $block = trim((string) $block);
+    if ($block === '' || stripos($unitCode, $block) === 0) return "Unit {$unitCode}";
+    return "Block {$block}, Unit {$unitCode}";
+}
+
+/** Human time in Lagos, e.g. "26 Sep, 4:27 pm". */
+function lagos_time(DateTimeImmutable $dt): string {
+    return $dt->setTimezone(new DateTimeZone('Africa/Lagos'))->format('j M, g:i a');
+}

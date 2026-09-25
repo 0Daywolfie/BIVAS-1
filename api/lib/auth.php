@@ -24,10 +24,11 @@ function bearer_token(): ?string {
 
 /**
  * Returns the logged-in user or stops with 401/403.
- * Resident shape: resident_id, unit_id, estate_id, full_name
- * Staff shape:    staff_id, estate_id, full_name, role
+ * Pass null to accept either account type.
+ * Resident shape: user_type, resident_id, unit_id, estate_id, full_name, unit_code, block, estate_name
+ * Staff shape:    user_type, staff_id, estate_id, full_name, role, estate_name
  */
-function require_user(string $userType): array {
+function require_user(?string $userType): array {
     $token = bearer_token() ?? fail(401, 'Log in first');
 
     $stmt = db()->prepare(
@@ -37,18 +38,23 @@ function require_user(string $userType): array {
     $stmt->execute([hash('sha256', $token)]);
     $session = $stmt->fetch() ?: fail(401, 'Session expired, log in again');
 
-    if ($session['user_type'] !== $userType) fail(403, 'Not allowed for your account type');
+    if ($userType !== null && $session['user_type'] !== $userType) fail(403, 'Not allowed for your account type');
 
-    if ($userType === 'resident') {
+    if ($session['user_type'] === 'resident') {
         $stmt = db()->prepare(
-            'SELECT r.resident_id, r.unit_id, u.estate_id, r.full_name
-             FROM residents r JOIN units u ON u.unit_id = r.unit_id
-             WHERE r.resident_id = ? AND r.is_active = TRUE'
+            "SELECT 'resident' AS user_type, r.resident_id, r.unit_id, u.estate_id, r.full_name,
+                    u.unit_code, u.block, e.name AS estate_name
+             FROM residents r
+             JOIN units u ON u.unit_id = r.unit_id
+             JOIN estates e ON e.estate_id = u.estate_id
+             WHERE r.resident_id = ? AND r.is_active = TRUE"
         );
     } else {
         $stmt = db()->prepare(
-            'SELECT staff_id, estate_id, full_name, role
-             FROM security_staff WHERE staff_id = ? AND is_active = TRUE'
+            "SELECT 'staff' AS user_type, s.staff_id, s.estate_id, s.full_name, s.role,
+                    e.name AS estate_name
+             FROM security_staff s JOIN estates e ON e.estate_id = s.estate_id
+             WHERE s.staff_id = ? AND s.is_active = TRUE"
         );
     }
     $stmt->execute([$session['user_id']]);

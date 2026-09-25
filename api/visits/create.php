@@ -53,11 +53,23 @@ for ($attempt = 1; ; $attempt++) {
     }
 }
 
+$host = strtok($resident['full_name'], ' ');
+$destination = unit_label($resident['block'], $resident['unit_code']);
+$window = $validFrom > $now
+    ? 'It works once, from ' . lagos_time($validFrom) . ' until ' . lagos_time($validTo) . '.'
+    : 'It works once, until ' . lagos_time($validTo) . '.';
+
 json_out([
     'success' => true,
     'visit_id' => (int) db()->lastInsertId(),
     'access_code' => $code,
+    'visitor_name' => $visitorName,
+    'visitor_phone' => $visitorPhone,
+    'estate_name' => $resident['estate_name'],
+    'destination' => $destination,
     'valid_from' => $validFrom->format(DATE_ATOM),
     'valid_to' => $validTo->format(DATE_ATOM),
-    'share_message' => "Hi {$visitorName}, your gate code is {$code}. Show it to security on arrival.",
+    'share_message' => "Hi {$visitorName}, {$host} has invited you to {$resident['estate_name']} ({$destination}).\n\n"
+        . "Your gate code is {$code}. {$window}\n\n"
+        . "Show this code to security at the gate.",
 ], 201);
