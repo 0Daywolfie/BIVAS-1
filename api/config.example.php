@@ -13,6 +13,7 @@ return [
 
     'resident_token_ttl_hours' => 24 * 30, // residents stay logged in ~30 days
     'staff_token_ttl_hours'    => 12,      // guards: one shift
+    'admin_token_ttl_hours'    => 8,       // estate managers: one working day
 
     'max_visit_window_hours'   => 24 * 7,  // an invite can't be valid for more than a week
     'verify_max_failures'      => 5,       // failed code checks allowed per guard...

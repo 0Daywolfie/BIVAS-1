@@ -3,7 +3,11 @@ declare(strict_types=1);
 
 function issue_token(string $userType, int $userId): array {
     $token = bin2hex(random_bytes(32));
-    $ttl = $userType === 'staff' ? config('staff_token_ttl_hours') : config('resident_token_ttl_hours');
+    $ttl = match ($userType) {
+        'staff' => config('staff_token_ttl_hours'),
+        'admin' => config_or('admin_token_ttl_hours', 8),
+        default => config('resident_token_ttl_hours'),
+    };
     $expires = utc_now()->modify("+{$ttl} hours");
 
     db()->prepare(
@@ -26,7 +30,8 @@ function bearer_token(): ?string {
  * Returns the logged-in user or stops with 401/403.
  * Pass null to accept either account type.
  * Resident shape: user_type, resident_id, unit_id, estate_id, full_name, unit_code, block, estate_name
- * Staff shape:    user_type, staff_id, estate_id, full_name, role, estate_name
+ * Staff shape:    user_type, staff_id, estate_id, full_name, role, lockout_cleared_at, estate_name
+ * Admin shape:    user_type, admin_id, estate_id, full_name, estate_name
  */
 function require_user(?string $userType): array {
     $token = bearer_token() ?? fail(401, 'Log in first');
@@ -49,12 +54,19 @@ function require_user(?string $userType): array {
              JOIN estates e ON e.estate_id = u.estate_id
              WHERE r.resident_id = ? AND r.is_active = TRUE"
         );
-    } else {
+    } elseif ($session['user_type'] === 'staff') {
         $stmt = db()->prepare(
             "SELECT 'staff' AS user_type, s.staff_id, s.estate_id, s.full_name, s.role,
-                    e.name AS estate_name
+                    s.lockout_cleared_at, e.name AS estate_name
              FROM security_staff s JOIN estates e ON e.estate_id = s.estate_id
              WHERE s.staff_id = ? AND s.is_active = TRUE"
+        );
+    } else {
+        $stmt = db()->prepare(
+            "SELECT 'admin' AS user_type, a.admin_id, a.estate_id, a.full_name,
+                    e.name AS estate_name
+             FROM estate_admins a JOIN estates e ON e.estate_id = a.estate_id
+             WHERE a.admin_id = ? AND a.is_active = TRUE"
         );
     }
     $stmt->execute([$session['user_id']]);
@@ -63,4 +75,22 @@ function require_user(?string $userType): array {
 
 function hash_access_code(string $code): string {
     return hash_hmac('sha256', $code, config('code_pepper'));
+}
+
+/** Revoke every live session for one account (after deactivation or a credential reset). */
+function revoke_tokens(string $userType, int $userId): void {
+    db()->prepare(
+        'UPDATE api_tokens SET revoked_at = UTC_TIMESTAMP()
+         WHERE user_type = ? AND user_id = ? AND revoked_at IS NULL'
+    )->execute([$userType, $userId]);
+}
+
+/**
+ * Start of the window in which a guard's wrong codes count toward a lockout:
+ * the later of "window minutes ago" and the moment an admin last cleared them.
+ */
+function lockout_window_start(?string $clearedAt): string {
+    $windowStart = utc_now()->modify('-' . (int) config('verify_window_minutes') . ' minutes');
+    $start = sql_dt($windowStart);
+    return ($clearedAt !== null && $clearedAt > $start) ? $clearedAt : $start;
 }

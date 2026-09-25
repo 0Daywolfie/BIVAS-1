@@ -12,7 +12,7 @@ $out = [
 ];
 if ($user['user_type'] === 'resident') {
     $out['unit'] = unit_label($user['block'], $user['unit_code']);
-} else {
+} elseif ($user['user_type'] === 'staff') {
     $out['role'] = $user['role'];
 }
 json_out($out);

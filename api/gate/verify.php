@@ -9,15 +9,15 @@ require_method('POST');
 $staff = require_user('staff');
 
 // ---- Rate limit: stop a guard device from guessing codes ----
+// Failures before an admin cleared the lockout don't count (they stay logged as evidence).
 $window = (int) config('verify_window_minutes');
 $stmt = db()->prepare(
     'SELECT COUNT(*) FROM verify_attempts
-     WHERE staff_id = ? AND success = FALSE
-       AND attempted_at > UTC_TIMESTAMP() - INTERVAL ? MINUTE'
+     WHERE staff_id = ? AND success = FALSE AND attempted_at > ?'
 );
-$stmt->execute([$staff['staff_id'], $window]);
+$stmt->execute([$staff['staff_id'], lockout_window_start($staff['lockout_cleared_at'])]);
 if ((int) $stmt->fetchColumn() >= config('verify_max_failures')) {
-    fail(429, "Too many wrong codes. Wait {$window} minutes or call a supervisor.");
+    fail(429, "Too many wrong codes. Wait {$window} minutes or ask the estate manager to clear it.");
 }
 
 $code = str_field('code', true, 12);

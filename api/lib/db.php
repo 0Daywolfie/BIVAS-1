@@ -12,6 +12,14 @@ function config(string $key): mixed {
     return $config[$key];
 }
 
+/** Like config(), but falls back to a default when an older config.php lacks the key. */
+function config_or(string $key, mixed $default): mixed {
+    try { return config($key); } catch (RuntimeException $e) {
+        if (str_starts_with($e->getMessage(), 'Missing config key')) return $default;
+        throw $e;
+    }
+}
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
