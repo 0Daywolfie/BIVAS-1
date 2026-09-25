@@ -1,0 +1,8 @@
+# Pass the Authorization header through to PHP (Apache/cPanel strips it by default)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+# Never serve config or internals over the web
+<FilesMatch "^(config\.php|config\.example\.php)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes
