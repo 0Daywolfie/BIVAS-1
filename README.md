@@ -90,22 +90,48 @@ Send the token as `Authorization: Bearer <token>`. Times are ISO-8601; stored in
 ```bash
 mysql -u root -p bivas < database/migrations/001_schema.sql
 mysql -u root -p bivas < database/migrations/002_auth_and_codes.sql
+mysql -u root -p bivas < database/migrations/003_admin.sql
 mysql -u root -p bivas < database/seed-demo.sql          # optional demo data
 cp api/config.example.php api/config.php                 # fill in DB creds + code_pepper
+php tools/create-admin.php 1 08033333333 "Demo Admin" 'Str0ng-admin-pass'
 php tools/set-credential.php resident 08031111111 'Demo-pass1'
-php tools/set-credential.php staff    08032222222 123456
+php tools/set-credential.php staff    08032222222 482913
 php -S 127.0.0.1:8080                                    # local dev
 ```
 
-**Deploying to cPanel:** upload `api/` and `gate/` into `public_html/`, keep `tools/` and `database/` **outside** `public_html`, and add a cron job every 15 minutes: `php /home/USER/bivas/tools/expire-visits.php`.
+The demo credentials above are for local use only. On any public host, use strong ones (or let the admin dashboard generate them).
+
+## Deploying to cPanel (shared hosting)
+
+Upload everything below into one folder, for example `public_html/bivas/`:
+
+```
+bivas/
+  admin/  gate/  resident/   the three screens
+  api/                       config.php is created on the server, never uploaded or committed
+  tools/                     CLI scripts; must sit next to api/ (they load ../api/lib/db.php)
+```
+
+1. **Keep the folders side by side.** Each screen finds the API at `../api/`, so `admin/`, `gate/`, `resident/` and `api/` must be siblings. Don't upload `database/`; import it through phpMyAdmin instead.
+2. **Import the migrations** `001`, `002` and `003`, in order, as a database user that can create and alter tables (on cPanel, phpMyAdmin's own login). Not the restricted app user below.
+3. **Create `api/config.php` on the server** from `config.example.php`. Generate the pepper with `php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"`, and set the file's permissions to 640. `api/.htaccess` blocks it from the web.
+4. **Use a least-privilege database user for the app.** It only needs `SELECT`, `INSERT`, `UPDATE` and `DELETE`.
+5. **Create the first admin.** With a terminal: `php tools/create-admin.php ...` (see Admin above). Without one, run `php tools/make-admin-sql.php <estate_id> <phone> "<name>"` on your own computer. It prompts for the password (hidden) and prints a single `INSERT` to paste into phpMyAdmin. After that, add residents and guards from the dashboard.
+6. **Add a cron job every 15 minutes** to expire old invites: `php /home/USER/public_html/bivas/tools/expire-visits.php`. Use a PHP 8.1+ binary.
+7. **Serve it over HTTPS.** Everyone signs in with a phone number and a PIN or password.
+
+`tools/.htaccess` denies web access to the scripts, and each one also refuses to run outside the command line.
+
+**Sharing a database with another app?** `001_schema.sql` creates `vehicles` and `incident_reports`, which no code uses yet. If the other app already has a `vehicles` table (a car dealership, say), rename them (for example `bivas_vehicles`) in `001` before importing, and check that none of the other table names already exist.
 
 ## Roadmap
 
 - [x] Schema + ER diagram
 - [x] Auth, invites, gate verify / check-in / check-out (tested end to end)
 - [x] Guard gate screen (mobile web)
-- [ ] Resident invite screen + WhatsApp share
-- [ ] Admin dashboard (`bivas-1-admin-dashboard`): estates, units, residents, staff, entry logs
+- [x] Resident invite screen + WhatsApp share
+- [x] Admin dashboard: residents, guards, gate log, invites, audit trail
+- [ ] Admin screen for creating estates (today an estate is added with SQL; units are created automatically when a resident is added)
 - [ ] Walk-in visitors, QR codes, recurring invites (cleaners, drivers)
 - [ ] Encrypt visitor ID numbers at rest
 

@@ -1,0 +1,2 @@
+# CLI scripts only (cron / terminal). Never reachable from the web.
+Require all denied
