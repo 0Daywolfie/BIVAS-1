@@ -108,9 +108,12 @@ Upload everything below into one folder, for example `public_html/bivas/`:
 ```
 bivas/
   admin/  gate/  resident/   the three screens
+  index.html  .htaccess      landing page; keeps the app out of search results
   api/                       config.php is created on the server, never uploaded or committed
   tools/                     CLI scripts; must sit next to api/ (they load ../api/lib/db.php)
 ```
+
+A fuller walkthrough, including a shared-database install with a pre-flight check, is in `deploy/DEPLOY-shared-cpanel.md`.
 
 1. **Keep the folders side by side.** Each screen finds the API at `../api/`, so `admin/`, `gate/`, `resident/` and `api/` must be siblings. Don't upload `database/`; import it through phpMyAdmin instead.
 2. **Import the migrations** `001`, `002` and `003`, in order, as a database user that can create and alter tables (on cPanel, phpMyAdmin's own login). Not the restricted app user below.

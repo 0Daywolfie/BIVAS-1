@@ -1,0 +1,5 @@
+# Keep the sign-in screens out of search results, and never list directories.
+Options -Indexes
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
